@@ -1,2 +1,19 @@
-Code is not kept on the master branch.  As of January 14, 2013 the current
-active branch is 7.x-1.x.
+
+CONTENTS OF THIS FILE
+---------------------
+
+ * Introduction
+ * Installation
+
+INTRODUCTION
+------------
+
+Current maintainer: David Cameron
+Original author: David Cameron <david.a.cameron@sbcglobal.net>
+
+The WIC NSS Self-Assessment module was created for the WICWorks office at NAL.
+
+INSTALLATION
+------------
+
+Install as usual, see http://drupal.org/node/70151 for further information.
