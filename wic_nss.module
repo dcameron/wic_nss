@@ -4,3 +4,109 @@
  * @file
  * Provides basic functions for the wic_nss module.
  */
+
+/**
+ * Formats the menu links for the child pages of the current page.
+ *
+ * @param $book_link
+ *   A fully loaded menu link that is part of the book hierarchy.
+ *
+ * @return
+ *   HTML for the links to the child pages of the current page.
+ */
+function wic_nss_book_children($book_link) {
+  $flat = book_get_flat_menu($book_link);
+
+  $children = array();
+
+  if ($book_link['has_children']) {
+    // Walk through the array until we find the current page.
+    do {
+      $link = array_shift($flat);
+    }
+    while ($link && ($link['mlid'] != $book_link['mlid']));
+    // Continue though the array and collect the links whose parent is this page.
+    while (($link = array_shift($flat)) && $link['plid'] == $book_link['mlid']) {
+      $data['link'] = $link;
+      $data['below'] = '';
+      $children[] = $data;
+    }
+  }
+
+  if ($children) {
+    // This is where this module's implementation differs from Book's.
+    global $user;
+    var_dump($user->uid);
+    var_dump($children);
+    $nids = array();
+    foreach ($children as $key => $child) {
+      // Check that the link is for a node.
+      if (strtok($child['link']['link_path'], '/') != 'node') {
+        continue;
+      }
+      $nids[$key] = strtok('/');
+    }
+    $elements = menu_tree_output($children);
+    return drupal_render($elements);
+  }
+  return '';
+}
+
+/**
+ * Processes variables for book-navigation.tpl.php.
+ *
+ * @param array $variables
+ *   An associative array containing the following key:
+ *   - book_link
+ *
+ * @see book-navigation.tpl.php
+ */
+function wic_nss_preprocess_book_navigation(&$variables) {
+  $book_link = $variables['book_link'];
+
+  // Provide extra variables for themers. Not needed by default.
+  $variables['book_id'] = $book_link['bid'];
+  $variables['book_title'] = check_plain($book_link['link_title']);
+  $variables['book_url'] = 'node/' . $book_link['bid'];
+  $variables['current_depth'] = $book_link['depth'];
+  $variables['tree'] = '';
+
+  if ($book_link['mlid']) {
+    $variables['tree'] = wic_nss_book_children($book_link);
+
+    if ($prev = book_prev($book_link)) {
+      $prev_href = url($prev['href']);
+      drupal_add_html_head_link(array('rel' => 'prev', 'href' => $prev_href));
+      $variables['prev_url'] = $prev_href;
+      $variables['prev_title'] = check_plain($prev['title']);
+    }
+
+    if ($book_link['plid'] && $parent = book_link_load($book_link['plid'])) {
+      $parent_href = url($parent['href']);
+      drupal_add_html_head_link(array('rel' => 'up', 'href' => $parent_href));
+      $variables['parent_url'] = $parent_href;
+      $variables['parent_title'] = check_plain($parent['title']);
+    }
+
+    if ($next = book_next($book_link)) {
+      $next_href = url($next['href']);
+      drupal_add_html_head_link(array('rel' => 'next', 'href' => $next_href));
+      $variables['next_url'] = $next_href;
+      $variables['next_title'] = check_plain($next['title']);
+    }
+  }
+
+  $variables['has_links'] = FALSE;
+  // Link variables to filter for values and set state of the flag variable.
+  $links = array('prev_url', 'prev_title', 'parent_url', 'parent_title', 'next_url', 'next_title');
+  foreach ($links as $link) {
+    if (isset($variables[$link])) {
+      // Flag when there is a value.
+      $variables['has_links'] = TRUE;
+    }
+    else {
+      // Set empty to prevent notices.
+      $variables[$link] = '';
+    }
+  }
+}
