@@ -6,6 +6,32 @@
  */
 
 /**
+ * Returns HTML for a menu link and submenu.
+ *
+ * @param $variables
+ *   An associative array containing:
+ *   - element: Structured array data for a menu link.
+ *
+ * @ingroup themeable
+ */
+function theme_menu_link__wic_nss_book_toc(array $variables) {
+  $element = $variables['element'];
+  $sub_menu = '';
+
+  if ($element['#below']) {
+    $sub_menu = drupal_render($element['#below']);
+  }
+  if ($element['#webform_is_submitted']) {
+    $webform_status = ' <span class="wic-nss-complete">(Completed)</span>';
+  }
+  else {
+    $webform_status = ' <span class="wic-nss-incomplete">(Not completed)</span>';
+  }
+  $output = l($element['#title'], $element['#href'], $element['#localized_options']);
+  return '<li' . drupal_attributes($element['#attributes']) . '>' . $output . $webform_status . $sub_menu . "</li>\n";
+}
+
+/**
  * Formats the menu links for the child pages of the current page.
  *
  * @param $book_link
@@ -34,19 +60,25 @@ function wic_nss_book_children($book_link) {
   }
 
   if ($children) {
+    $elements = menu_tree_output($children);
     // This is where this module's implementation differs from Book's.
+    module_load_include('inc', 'webform', 'includes/webform.submissions');
     global $user;
-    var_dump($user->uid);
-    var_dump($children);
-    $nids = array();
-    foreach ($children as $key => $child) {
-      // Check that the link is for a node.
-      if (strtok($child['link']['link_path'], '/') != 'node') {
+    foreach ($elements as $mlid => $element) {
+      if (!is_numeric($mlid)) {
         continue;
       }
-      $nids[$key] = strtok('/');
+      // Check that the link is for a node.
+      if (strtok($element['#href'], '/') != 'node') {
+        continue;
+      }
+      $nid = (int) strtok('/');
+      // Pass the number of the current user's submissions to the link theme
+      // function.
+      $elements[$mlid]['#webform_is_submitted'] = webform_get_submission_count($nid, $user->uid);
+      $elements[$mlid]['#theme'] = 'menu_link__wic_nss_book_toc';
     }
-    $elements = menu_tree_output($children);
+    //var_dump($elements);
     return drupal_render($elements);
   }
   return '';
@@ -109,4 +141,15 @@ function wic_nss_preprocess_book_navigation(&$variables) {
       $variables[$link] = '';
     }
   }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function wic_nss_theme($existing, $type, $theme, $path) {
+  return array(
+    'menu_link__wic_nss_book_toc' => array(
+      'render element' => 'element',
+    ),
+  );
 }

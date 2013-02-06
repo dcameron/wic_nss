@@ -9,3 +9,5 @@ dependencies[] = webform
 
 files[] = wic_nss.install
 files[] = wic_nss.module
+
+stylesheets[all][] = wic_nss.css
