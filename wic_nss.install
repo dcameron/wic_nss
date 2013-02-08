@@ -5,3 +5,56 @@
  * Install, update and uninstall functions for the wic_nss module
  */
 
+/**
+ * Implements hook_schema().
+ */
+function wic_nss_schema() {
+  $schema['webform_book'] = array(
+    'description' => 'The base table for webform books.',
+    'fields' => array(
+      'wbid' => array(
+        'description' => 'Unique identifier for list item.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'title' => array(
+        'description' => 'The title of this webform book.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'uid' => array(
+        'description' => 'The users.uid that owns this webform book.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'status' => array(
+        'description' => "Boolean indictating where the webform book is the user's active (1) book or not (0).",
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'created' => array(
+        'description' => 'The Unix timestamp when the webform book was created.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'changed' => array(
+        'description' => 'The Unix timestamp when the webform book was most recently saved.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'primary key' => array('wbid'),
+    'foreign keys' => array(
+      'uid' => array('users' => 'uid'),
+    ),
+  );
+
+  return $schema;
+}
