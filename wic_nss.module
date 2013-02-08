@@ -205,9 +205,10 @@ function wic_nss_menu() {
       'file' => 'wic_nss.pages.inc',
     ),
     'assessments/add' => array(
-      'title' => 'Add assessment',
+      'title' => 'Start a new self-assessment',
       'page callback' => 'wic_nss_assessment_add_page',
       'access arguments' => array('access assessments'),
+      'type' => MENU_LOCAL_ACTION,
       'file' => 'wic_nss.pages.inc',
     ),
     'assessments/%wic_nss_assessment/edit' => array(
@@ -229,6 +230,15 @@ function wic_nss_menu() {
       'type' => MENU_LOCAL_TASK,
       'context' => MENU_CONTEXT_INLINE,
       'file' => 'wic_nss.pages.inc',
+    ),
+  );
+}
+
+function wic_nss_permission() {
+  return array(
+    'access assessments' => array(
+      'title' => t('Access self-assessments'),
+      'description' => t('Create, edit, and delete self-assessments'),
     ),
   );
 }
