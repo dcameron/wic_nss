@@ -32,14 +32,26 @@ function theme_menu_link__wic_nss_book_toc(array $variables) {
 }
 
 /**
+ * Delete an assessment from the database.
+ *
+ * @param int $id
+ *   An assessment ID.
+ */
+function wic_nss_assessment_delete($wbid) {
+  $query = db_delete('webform_book')
+    ->condition('wbid', $wbid)
+    ->execute();
+}
+
+/**
  * Load an assessment object from the database.
  *
  * @param int $id
  *   The assessment ID.
  */
-function wic_nss_assessment_load($id) {
-  $ids = array($id);
-  $assessment = wic_nss_assessment_load_multiple($ids);
+function wic_nss_assessment_load($wbid) {
+  $wbids = array($wbid);
+  $assessment = wic_nss_assessment_load_multiple($wbids);
   return $assessment ? reset($assessment) : FALSE;
 }
 
@@ -49,15 +61,63 @@ function wic_nss_assessment_load($id) {
  * @param int $id
  *   The assessment ID.
  */
-function wic_nss_assessment_load_multiple($ids) {
+function wic_nss_assessment_load_multiple($wbids) {
   $assessments = array();
-  foreach ($ids as $id) {
-    $results = db_query("SELECT wbid, title, uid, status, created, changed FROM {webform_book} WHERE wbid = :id", array(':id' => $id));
+  foreach ($wbids as $wbid) {
+    $results = db_query("SELECT wbid, title, uid, status, created, changed FROM {webform_book} WHERE wbid = :wbid", array(':wbid' => $wbid));
     foreach ($results as $result) {
       $assessments[$result->wbid] = $result;
     }
   }
   return $assessments;
+}
+
+/**
+ * Save changes to an assessment or add a new assessment.
+ *
+ * @param $assessment
+ *   An assessment object.
+ */
+function wic_nss_assessment_save($assessment) {
+  $transaction = db_transaction();
+
+  try {
+    // Update the changed timestamp.
+    $assessment->changed = REQUEST_TIME;
+
+    // Save new assessments.
+    if (!isset($assessment->wbid)) {
+      // Set some default values for the assessment.
+      $assessment->status = 0;
+      $assessment->created = REQUEST_TIME;
+
+      $wbid = db_insert('webform_book')
+        ->fields(array(
+          'title' => $assessment->title,
+          'uid' => $assessment->uid,
+          'status' => $assessment->status,
+          'created' => $assessment->created,
+          'changed' => $assessment->changed,
+        ))
+        ->execute();
+    }
+    // Update existing assessments.
+    else {
+      $query = db_update('webform_book')
+        ->fields(array(
+          'title' => $assessment->title,
+          'status' => $assessment->status,
+          'changed' => $assessment->changed,
+        ))
+        ->condition('wbid', $assessment->wbid)
+        ->execute();
+    }
+  }
+  catch (Exception $e) {
+    $transaction->rollback();
+    watchdog_exception('wic_nss', $e);
+    throw $e;
+  }
 }
 
 /**
@@ -122,19 +182,21 @@ function wic_nss_menu() {
       'title' => 'Your self-assessments',
       'description' => 'Manage your self-assessments',
       'page callback' => 'wic_nss_assessment_default_page',
-      'access arguments' => array('access content'),
+      'access arguments' => array('access assessments'),
       'type' => MENU_NORMAL_ITEM,
       'file' => 'wic_nss.pages.inc',
     ),
     'assessments/add' => array(
       'title' => 'Add assessment',
       'page callback' => 'wic_nss_assessment_add_page',
+      'access arguments' => array('access assessments'),
       'file' => 'wic_nss.pages.inc',
     ),
     'assessments/%wic_nss_assessment/edit' => array(
       'title' => 'Edit',
       'page callback' => 'wic_nss_assessment_edit_page',
       'page arguments' => array(1),
+      'access arguments' => array('access assessments'),
       'weight' => 0,
       'type' => MENU_LOCAL_TASK,
       'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
@@ -144,6 +206,7 @@ function wic_nss_menu() {
       'title' => 'Delete',
       'page callback' => 'drupal_get_form',
       'page arguments' => array('wic_nss_assessment_delete_confirm', 1),
+      'access arguments' => array('access assessments'),
       'weight' => 1,
       'type' => MENU_LOCAL_TASK,
       'context' => MENU_CONTEXT_INLINE,
