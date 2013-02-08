@@ -162,6 +162,11 @@ function wic_nss_book_children($book_link) {
         continue;
       }
       $nid = (int) strtok('/');
+      // Check that the node type is a webform.
+      $node = node_load($nid);
+      if ($node->type != 'webform') {
+        continue;
+      }
       // Pass the number of the current user's submissions to the link theme
       // function.
       $elements[$mlid]['#webform_is_submitted'] = webform_get_submission_count($nid, $user->uid);
@@ -234,6 +239,12 @@ function wic_nss_menu() {
   );
 }
 
+/**
+ * Implements hook_permission().
+ *
+ * @return array
+ *   An associative array containing user permission data.
+ */
 function wic_nss_permission() {
   return array(
     'access assessments' => array(
