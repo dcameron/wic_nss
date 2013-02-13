@@ -10,11 +10,17 @@
  */
 function wic_nss_schema() {
   $schema['webform_book'] = array(
-    'description' => 'The base table for webform books.',
+    'description' => 'Stores instances of webform books.',
     'fields' => array(
       'wbid' => array(
-        'description' => 'Unique identifier for list item.',
+        'description' => 'The primary identifier for a webform book.',
         'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'nid' => array(
+        'description' => 'The book.nid to which this webform book is linked.',
+        'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
