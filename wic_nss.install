@@ -6,6 +6,23 @@
  */
 
 /**
+ * Implements hook_install().
+ */
+function wic_nss_install() {
+  // Initialize the book nodes array variable.  The nids of valid webform books
+  // are stored in it.  There is no need to create a whole table just for them.
+  variable_set('webform_book_nids', array());
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function wic_nss_uninstall() {
+  // Delete the module's variables.
+  variable_del('webform_book_nids');
+}
+
+/**
  * Implements hook_schema().
  */
 function wic_nss_schema() {
