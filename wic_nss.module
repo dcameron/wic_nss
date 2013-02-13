@@ -64,7 +64,7 @@ function wic_nss_assessment_load($wbid) {
 function wic_nss_assessment_load_multiple($wbids) {
   $assessments = array();
   foreach ($wbids as $wbid) {
-    $results = db_query("SELECT wbid, title, uid, status, created, changed FROM {webform_book} WHERE wbid = :wbid", array(':wbid' => $wbid));
+    $results = db_query("SELECT wbid, nid, title, uid, status, created, changed FROM {webform_book} WHERE wbid = :wbid", array(':wbid' => $wbid));
     foreach ($results as $result) {
       $assessments[$result->wbid] = $result;
     }
@@ -93,6 +93,7 @@ function wic_nss_assessment_save($assessment) {
 
       $wbid = db_insert('webform_book')
         ->fields(array(
+          'nid' => $assessment->nid,
           'title' => $assessment->title,
           'uid' => $assessment->uid,
           'status' => $assessment->status,
@@ -105,6 +106,7 @@ function wic_nss_assessment_save($assessment) {
     else {
       $query = db_update('webform_book')
         ->fields(array(
+          'nid' => $assessment->nid,
           'title' => $assessment->title,
           'status' => $assessment->status,
           'changed' => $assessment->changed,

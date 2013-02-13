@@ -15,6 +15,15 @@
  *   The assessment add/edit form.
  */
 function wic_nss_assessment_form($form, &$form_state, $assessment = NULL) {
+  $webform_book_nids = variable_get('webform_book_nids', array());
+  if (empty($webform_book_nids)) {
+    return array(
+      'empty' => array(
+        '#markup' => '<p>' . t("We're sorry!  Assessments are unavailable at this time!") . '</p>',
+      ),
+    );
+  }
+
   if (!isset($form_state['assessment'])) {
     $form_state['assessment'] = $assessment;
   }
@@ -24,10 +33,31 @@ function wic_nss_assessment_form($form, &$form_state, $assessment = NULL) {
 
   $form['title'] = array(
     '#type' => 'textfield',
-    '#title' => t('Give a title to this self-assessment'),
+    '#title' => t('Give a title to this self-assessment.'),
     '#maxlength' => 255,
     '#default_value' => isset($assessment->title) ? $assessment->title : '',
   );
+  // Add the webform book nid as a value if there's only one to pick from.
+  // Create a select element if there a multiple webform books.
+  if (count($webform_book_nids) == 1) {
+    $form['nid'] = array(
+      '#type' => 'value',
+      '#value' => isset($assessment->nid) ? $assessment->nid : reset($webform_book_nids),
+    );
+  }
+  else {
+    $nodes = node_load_multiple($webform_book_nids);
+    $options = array();
+    foreach ($nodes as $nid => $node) {
+      $options[$nid] = $node->title;
+    }
+    $form['nid'] = array(
+      '#type' => 'select',
+      '#title' => t('Select the type of self-assessment that you want to take.'),
+      '#options' => $options,
+      '#default_value' => isset($assessment->nid) ? $assessment->nid : NULL,
+    );
+  }
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save'),
@@ -54,6 +84,7 @@ function wic_nss_assessment_form_submit($form, &$form_state) {
 
   // Load the assessment object with input from the form.
   $assessment->title = $form_state['values']['title'];
+  $assessment->nid = $form_state['values']['nid'];
   // Save the assessment to the database.
   wic_nss_assessment_save($assessment);
 
