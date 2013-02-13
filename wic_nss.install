@@ -74,8 +74,56 @@ function wic_nss_schema() {
       ),
     ),
     'primary key' => array('wbid'),
+    'indexes' => array(
+      'books_by_user' => array('title', 'status'),
+      'submission_insert' => array('nid', 'uid', 'status'),
+    ),
     'foreign keys' => array(
-      'uid' => array('users' => 'uid'),
+      'nid' => array(
+        'table' => 'book',
+        'columns' => array('nid' => 'nid'),
+      ),
+      'uid' => array(
+        'table' => 'users',
+        'columns' => array('uid' => 'uid'),
+      ),
+    ),
+  );
+
+  $schema['webform_book_index'] = array(
+    'description' => 'Maintains webform book/submission relationships.',
+    'fields' => array(
+      'wbid' => array(
+        'description' => 'The webform_book.wbid this record tracks.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'sid' => array(
+        'description' => 'The webform_submissions.sid.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'created' => array(
+        'description' => 'The UNIX timestamp when the record was created.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'indexes' => array(
+      'wbid' => array('wbid'),
+    ),
+    'foreign keys' => array(
+      'wbid' => array(
+        'table' => 'webform_book',
+        'columns' => array('wbid' => 'wbid'),
+      ),
+      'sid' => array(
+        'table' => 'webform_submissions',
+        'columns' => array('sid' => 'sid'),
+      ),
     ),
   );
 
