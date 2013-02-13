@@ -236,6 +236,15 @@ function wic_nss_menu() {
       'context' => MENU_CONTEXT_INLINE,
       'file' => 'wic_nss.pages.inc',
     ),
+    'admin/content/webform-book' => array(
+      'title' => 'Webform books',
+      'description' => "Manage your site's webform books.",
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('wic_nss_select_books'),
+      'access arguments' => array('administer webform books'),
+      'type' => MENU_LOCAL_TASK,
+      'file' => 'wic_nss.admin.inc',
+    ),
   );
 }
 
@@ -250,6 +259,9 @@ function wic_nss_permission() {
     'access assessments' => array(
       'title' => t('Access self-assessments'),
       'description' => t('Create, edit, and delete self-assessments'),
+    ),
+    'administer webform books' => array(
+      'title' => t('Administer webform books'),
     ),
   );
 }
