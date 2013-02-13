@@ -39,6 +39,11 @@ function wic_nss_select_books($form, &$form_state) {
   return $form;
 }
 
+/**
+ * Form submission handler for wic_nss_select_books().
+ *
+ * @see wic_nss_select_books()
+ */
 function wic_nss_select_books_submit($form, &$form_state) {
   // Save the nids of the checked books to the webform_book_nids variable.
   $nids = array();

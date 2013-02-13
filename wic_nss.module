@@ -78,7 +78,7 @@ function wic_nss_assessment_load_multiple($wbids) {
  * @param $assessment
  *   An assessment object.
  *
- * @return $assessment
+ * @return
  *   The saved assessment object or FALSE.
  */
 function wic_nss_assessment_save($assessment) {
