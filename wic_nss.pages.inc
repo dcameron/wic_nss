@@ -76,6 +76,14 @@ function wic_nss_assessment_form($form, &$form_state, $assessment = NULL) {
       '#default_value' => isset($assessment->nid) ? $assessment->nid : NULL,
     );
   }
+  $form['activation_info'] = array(
+    '#markup' => '<p>' . t('In order to have form submissions saved as part of a single report, you must first activate a self-assessment.') . "</p>\n",
+  );
+  $form['status'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Activate this assessment.'),
+    '#default_value' => isset($assessment->status) ? $assessment->status : 0,
+  );
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save'),
@@ -103,8 +111,9 @@ function wic_nss_assessment_form_submit($form, &$form_state) {
   // Load the assessment object with input from the form.
   $assessment->title = $form_state['values']['title'];
   $assessment->nid = $form_state['values']['nid'];
+  $assessment->status = $form_state['values']['status'];
   // Save the assessment to the database.
-  wic_nss_assessment_save($assessment);
+  $assessment = wic_nss_assessment_save($assessment);
 
   if ($insert) {
     watchdog('wic_nss', 'Assessment: added %title.', array('%title' => $assessment->title));
@@ -115,7 +124,15 @@ function wic_nss_assessment_form_submit($form, &$form_state) {
     drupal_set_message(t('Assessment %title has been updated.', array('%title' => $assessment->title)));
   }
 
-  $form_state['redirect'] = 'assessments';
+  if ($assessment->status) {
+    // Redirect to the assessment's activate page. wic_nss_assessment_activate()
+    // can properly handle deactivation of other assessments and displaying the
+    // activation message to the user.
+    $form_state['redirect'] = 'assessments/' . $assessment->wbid . '/activate';
+  }
+  else {
+    $form_state['redirect'] = 'assessments';
+  }
 }
 
 /**

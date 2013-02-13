@@ -77,6 +77,9 @@ function wic_nss_assessment_load_multiple($wbids) {
  *
  * @param $assessment
  *   An assessment object.
+ *
+ * @return $assessment
+ *   The saved assessment object or FALSE.
  */
 function wic_nss_assessment_save($assessment) {
   $transaction = db_transaction();
@@ -88,10 +91,9 @@ function wic_nss_assessment_save($assessment) {
     // Save new assessments.
     if (!isset($assessment->wbid)) {
       // Set some default values for the assessment.
-      $assessment->status = 0;
       $assessment->created = REQUEST_TIME;
 
-      $wbid = db_insert('webform_book')
+      $assessment->wbid = db_insert('webform_book')
         ->fields(array(
           'nid' => $assessment->nid,
           'title' => $assessment->title,
@@ -119,7 +121,9 @@ function wic_nss_assessment_save($assessment) {
     $transaction->rollback();
     watchdog_exception('wic_nss', $e);
     throw $e;
+    return FALSE;
   }
+  return $assessment;
 }
 
 /**
@@ -205,7 +209,7 @@ function wic_nss_get_assessments_by_user($uid) {
   $wbids = array();
 
   // Query for the assessment IDs owned by this user.
-  $results = db_query('SELECT wbid FROM {webform_book} WHERE uid = :uid', array(':uid' => $uid));
+  $results = db_query('SELECT wbid FROM {webform_book} WHERE uid = :uid ORDER BY status DESC, title ASC', array(':uid' => $uid));
   foreach ($results as $result) {
     $wbids[] = $result->wbid;
   }
