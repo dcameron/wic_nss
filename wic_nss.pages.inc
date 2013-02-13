@@ -106,36 +106,31 @@ function wic_nss_assessment_default_page() {
   // Get the current user's assessments.
   $assessments = wic_nss_get_assessments_by_user($user->uid);
 
-  if (!empty($assessments)) {
-    // Print a table of the assessments.
-    $header = array(t('Self-assessment title'), t('Status'), t('Operations'));
-    $rows = array();
-    foreach ($assessments as $assessment) {
-      $status = $assessment->status ? t('Active') : t('Inactive');
+  // Print a table of the assessments.
+  $header = array(t('Self-assessment title'), t('Status'), t('Operations'));
+  $rows = array();
+  foreach ($assessments as $assessment) {
+    $status = $assessment->status ? t('Active') : t('Inactive');
 
-      // Create the operations links.
-      $operations = array();
-      $operations['edit'] = array(
-        'title' => t('edit'),
-        'href' => 'assessments/' . $assessment->wbid . '/edit',
-      );
-      $operations['delete'] = array(
-        'title' => t('delete'),
-        'href' => 'assessments/' . $assessment->wbid . '/delete',
-      );
-      $row['data'] = array(
-        $assessment->title,
-        $status,
-        theme('links', array('links' => $operations, 'attributes' => array('class' => array('links', 'inline')))),
-      );
-      $rows[] = $row;
-    }
-    $caption = t("Here are the self-assessments that you've started so far.");
-    $output = theme('table', array('header' => $header, 'rows' => $rows, 'caption' => $caption));
+    // Create the operations links.
+    $operations = array();
+    $operations['edit'] = array(
+      'title' => t('edit'),
+      'href' => 'assessments/' . $assessment->wbid . '/edit',
+    );
+    $operations['delete'] = array(
+      'title' => t('delete'),
+      'href' => 'assessments/' . $assessment->wbid . '/delete',
+    );
+    $row['data'] = array(
+      $assessment->title,
+      $status,
+      theme('links', array('links' => $operations, 'attributes' => array('class' => array('links', 'inline')))),
+    );
+    $rows[] = $row;
   }
-  else {
-    $output = "<p>You haven't started any self-assessments yet!</p>";
-  }
+  $caption = t("Here are the self-assessments that you've started so far.");
+  $output = theme('table', array('header' => $header, 'rows' => $rows, 'caption' => $caption, 'empty' => "You haven't started any self-assessments yet!"));
 
   return $output;
 }
