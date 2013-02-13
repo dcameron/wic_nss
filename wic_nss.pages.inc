@@ -6,6 +6,24 @@
  */
 
 /**
+ * Page callback: Activates an assessment.
+ */
+function wic_nss_assessment_activate($assessment = NULL) {
+  // Set the status of all the user's assessments to 0.
+  global $user;
+  wic_nss_assessment_status_deactivate($user->uid);
+
+  // Update the assessment's status in the database.
+  $assessment->status = 1;
+  wic_nss_assessment_save($assessment);
+
+  // Get the webform book node's data.
+  $node = node_load($assessment->nid);
+  drupal_set_message(t('%assessment_title was activated.  Any form submissions in %webform_book_title will be saved as part of this self-assessment.', array('%assessment_title' => $assessment->title, '%webform_book_title' => $node->title)));
+  drupal_goto('assessments');
+}
+
+/**
  * Form constructor for the assessment add/edit form.
  *
  * @param type $assessment
@@ -137,12 +155,16 @@ function wic_nss_assessment_default_page() {
   // Get the current user's assessments.
   $assessments = wic_nss_get_assessments_by_user($user->uid);
 
+  $output = '';
+  // Print a message about activating assessments.
+  if (!empty($assessments)) {
+    $output .= '<p>' . t('In order to have form submissions saved as part of a single report, you must first activate a self-assessment.  Click the "activate" link in the Operations column for any Inactive self-assessment.') . "</p>\n";
+  }
+
   // Print a table of the assessments.
   $header = array(t('Self-assessment title'), t('Status'), t('Operations'));
   $rows = array();
   foreach ($assessments as $assessment) {
-    $status = $assessment->status ? t('Active') : t('Inactive');
-
     // Create the operations links.
     $operations = array();
     $operations['edit'] = array(
@@ -153,7 +175,20 @@ function wic_nss_assessment_default_page() {
       'title' => t('delete'),
       'href' => 'assessments/' . $assessment->wbid . '/delete',
     );
-    $row['data'] = array(
+
+    // Create the status text and link.
+    if ($assessment->status) {
+      $status = t('Active');
+    }
+    else {
+      $status = t('Inactive');
+      $operations['activate'] = array(
+        'title' => 'activate',
+        'href' => 'assessments/' . $assessment->wbid . '/activate',
+      );
+    }
+
+    $row = array(
       $assessment->title,
       $status,
       theme('links', array('links' => $operations, 'attributes' => array('class' => array('links', 'inline')))),
@@ -161,7 +196,7 @@ function wic_nss_assessment_default_page() {
     $rows[] = $row;
   }
   $caption = t("Here are the self-assessments that you've started so far.");
-  $output = theme('table', array('header' => $header, 'rows' => $rows, 'caption' => $caption, 'empty' => "You haven't started any self-assessments yet!"));
+  $output .= theme('table', array('header' => $header, 'rows' => $rows, 'caption' => $caption, 'empty' => "You haven't started any self-assessments yet!"));
 
   return $output;
 }

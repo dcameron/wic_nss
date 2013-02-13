@@ -123,6 +123,21 @@ function wic_nss_assessment_save($assessment) {
 }
 
 /**
+ * Deactivates all assessments for the given user.
+ *
+ * @param int $uid
+ *   A user ID.
+ */
+function wic_nss_assessment_status_deactivate($uid) {
+  $query = db_update('webform_book')
+    ->fields(array(
+      'status' => 0,
+    ))
+    ->condition('uid', $uid)
+    ->execute();
+}
+
+/**
  * Formats the menu links for the child pages of the current page.
  *
  * @param $book_link
@@ -236,6 +251,14 @@ function wic_nss_menu() {
       'weight' => 1,
       'type' => MENU_LOCAL_TASK,
       'context' => MENU_CONTEXT_INLINE,
+      'file' => 'wic_nss.pages.inc',
+    ),
+    'assessments/%wic_nss_assessment/activate' => array(
+      'title' => 'Activate',
+      'page callback' => 'wic_nss_assessment_activate',
+      'page arguments' => array(1),
+      'access arguments' => array('access assessments'),
+      'type' => MENU_CALLBACK,
       'file' => 'wic_nss.pages.inc',
     ),
     'admin/content/webform-book' => array(
