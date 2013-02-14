@@ -75,7 +75,7 @@ function wic_nss_schema() {
     ),
     'primary key' => array('wbid'),
     'indexes' => array(
-      'books_by_user' => array('title', 'status'),
+      'default_page' => array('title', 'status'),
       'submission_insert' => array('nid', 'uid', 'status'),
     ),
     'foreign keys' => array(
