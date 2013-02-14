@@ -75,7 +75,7 @@ function wic_nss_schema() {
     ),
     'primary key' => array('wbid'),
     'indexes' => array(
-      'default_page' => array('title', 'status'),
+      'default_page' => array('title', 'uid', 'status'),
       'submission_insert' => array('bid', 'uid', 'status'),
     ),
     'foreign keys' => array(
@@ -119,7 +119,8 @@ function wic_nss_schema() {
       ),
     ),
     'indexes' => array(
-      'wbid' => array('wbid'),
+      'node_load' => array('wbid', 'nid'),
+      'webform_submission_delete' => array('sid'),
     ),
     'foreign keys' => array(
       'wbid' => array(

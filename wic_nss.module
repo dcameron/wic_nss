@@ -419,7 +419,7 @@ function wic_nss_webform_submission_insert($node, $submission) {
   }
 
   // Determine if the user has an active submission set for this webform book.
-  $results = db_query("SELECT wbid, title FROM webform_book WHERE bid = :bid AND uid = :uid AND status = 1", array(':bid' => $bid, ':uid' => $user->uid));
+  $results = db_query("SELECT wbid, title FROM {webform_book} WHERE bid = :bid AND uid = :uid AND status = 1", array(':bid' => $bid, ':uid' => $user->uid));
   $result = $results->fetchObject();
   // Return if the user does not have an active submission set.
   if ($result === FALSE) {
