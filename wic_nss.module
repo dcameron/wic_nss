@@ -367,7 +367,7 @@ function wic_nss_webform_submission_insert($node, $submission) {
   global $user;
 
   // Get the bid of the webform.
-  $bid = isset($node['book']['bid']) ? $node['book']['bid'] : FALSE;
+  $bid = isset($node->book['bid']) ? $node->book['bid'] : FALSE;
 
   // Return if the webform was not a book page or the book is not a valid
   // webform book.
