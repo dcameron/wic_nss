@@ -384,30 +384,25 @@ function wic_nss_theme($existing, $type, $theme, $path) {
 function wic_nss_webform_submission_insert($node, $submission) {
   global $user;
 
-  // Determine if the webform node was a book page.
-  $results = db_query("SELECT bid FROM {book} WHERE nid = :nid", array(':nid' => $node->nid));
-  $result = $results->fetchCol();
-  // Return if the webform was not a book page.
-  if (!is_array($result)) {
-    return;
-  }
   // Get the bid of the webform.
-  $bid = reset($result);
+  $bid = isset($node['book']['bid']) ? $node['book']['bid'] : FALSE;
 
-  // Return if the book is not a valid webform book.
-  if (!in_array($bid, variable_get('webform_book_nids', array()))) {
+  // Return if the webform was not a book page or the book is not a valid
+  // webform book.
+  if (!$bid || !in_array($bid, variable_get('webform_book_nids', array()))) {
     return;
   }
 
   // Determine if the user has an active submission set for this webform book.
-  $results = db_query("SELECT wbid FROM webform_book WHERE nid = :nid AND uid = :uid AND status = 1", array(':nid' => $bid, ':uid' => $user->uid));
-  $result = $results->fetchCol();
+  $results = db_query("SELECT wbid, title FROM webform_book WHERE nid = :nid AND uid = :uid AND status = 1", array(':nid' => $bid, ':uid' => $user->uid));
+  $result = $results->fetchObject();
   // Return if the user does not have an active submission set.
-  if (!is_array($result)) {
+  if ($result === FALSE) {
     return;
   }
   // Get the wbid of the active submission set.
-  $wbid = reset($result);
+  $wbid = $result->wbid;
+  $title = $result->title;
 
   // Save the sid to the index.
   $query = db_insert('webform_book_index')
@@ -417,4 +412,5 @@ function wic_nss_webform_submission_insert($node, $submission) {
       'created' => REQUEST_TIME,
     ))
     ->execute();
+  drupal_set_message(t('This form submission was saved as part of your %title self-assessment.', array('%title' => $title)));
 }
