@@ -18,7 +18,7 @@ function wic_nss_assessment_activate($assessment = NULL) {
   wic_nss_assessment_save($assessment);
 
   // Get the webform book node's data.
-  $node = node_load($assessment->nid);
+  $node = node_load($assessment->bid);
   drupal_set_message(t('%assessment_title was activated.  Any form submissions in %webform_book_title will be saved as part of this self-assessment.', array('%assessment_title' => $assessment->title, '%webform_book_title' => $node->title)));
   drupal_goto('assessments');
 }
@@ -58,9 +58,9 @@ function wic_nss_assessment_form($form, &$form_state, $assessment = NULL) {
   // Add the webform book nid as a value if there's only one to pick from.
   // Create a select element if there a multiple webform books.
   if (count($webform_book_nids) == 1) {
-    $form['nid'] = array(
+    $form['bid'] = array(
       '#type' => 'value',
-      '#value' => isset($assessment->nid) ? $assessment->nid : reset($webform_book_nids),
+      '#value' => isset($assessment->bid) ? $assessment->bid : reset($webform_book_nids),
     );
   }
   else {
@@ -69,11 +69,11 @@ function wic_nss_assessment_form($form, &$form_state, $assessment = NULL) {
     foreach ($nodes as $nid => $node) {
       $options[$nid] = $node->title;
     }
-    $form['nid'] = array(
+    $form['bid'] = array(
       '#type' => 'select',
       '#title' => t('Select the type of self-assessment that you want to take.'),
       '#options' => $options,
-      '#default_value' => isset($assessment->nid) ? $assessment->nid : NULL,
+      '#default_value' => isset($assessment->bid) ? $assessment->bid : NULL,
     );
   }
   $form['activation_info'] = array(
@@ -110,7 +110,7 @@ function wic_nss_assessment_form_submit($form, &$form_state) {
 
   // Load the assessment object with input from the form.
   $assessment->title = $form_state['values']['title'];
-  $assessment->nid = $form_state['values']['nid'];
+  $assessment->bid = $form_state['values']['bid'];
   $assessment->status = $form_state['values']['status'];
   // Save the assessment to the database.
   $assessment = wic_nss_assessment_save($assessment);

@@ -70,7 +70,7 @@ function wic_nss_assessment_load($wbid) {
 function wic_nss_assessment_load_multiple($wbids) {
   $assessments = array();
   foreach ($wbids as $wbid) {
-    $results = db_query("SELECT wbid, nid, title, uid, status, created, changed FROM {webform_book} WHERE wbid = :wbid", array(':wbid' => $wbid));
+    $results = db_query("SELECT wbid, bid, title, uid, status, created, changed FROM {webform_book} WHERE wbid = :wbid", array(':wbid' => $wbid));
     foreach ($results as $result) {
       $assessments[$result->wbid] = $result;
     }
@@ -101,7 +101,7 @@ function wic_nss_assessment_save($assessment) {
 
       $assessment->wbid = db_insert('webform_book')
         ->fields(array(
-          'nid' => $assessment->nid,
+          'bid' => $assessment->bid,
           'title' => $assessment->title,
           'uid' => $assessment->uid,
           'status' => $assessment->status,
@@ -114,7 +114,7 @@ function wic_nss_assessment_save($assessment) {
     else {
       $query = db_update('webform_book')
         ->fields(array(
-          'nid' => $assessment->nid,
+          'bid' => $assessment->bid,
           'title' => $assessment->title,
           'status' => $assessment->status,
           'changed' => $assessment->changed,
@@ -191,12 +191,12 @@ function wic_nss_book_children($book_link) {
       $nid = (int) strtok('/');
       // Check that the node type is a webform.
       $node = node_load($nid);
-      if ($node->type != 'webform') {
+      if ($node->type != 'webform' || !isset($node->webform_book)) {
         continue;
       }
       // Pass the number of the current user's submissions to the link theme
       // function.
-      $elements[$mlid]['#webform_is_submitted'] = webform_get_submission_count($nid, $user->uid);
+      $elements[$mlid]['#webform_is_submitted'] = $node->webform_book['submission_count'];
       $elements[$mlid]['#theme'] = 'menu_link__wic_nss_book_toc';
     }
     //var_dump($elements);
@@ -263,6 +263,49 @@ function wic_nss_menu() {
       'file' => 'wic_nss.admin.inc',
     ),
   );
+}
+
+/**
+ * Implements hook_node_load().
+ *
+ * Loads webform book and submission index data for any webform nodes.
+ *
+ * @param array $nodes
+ *   An array of the nodes being loaded, keyed by nid.
+ * @param array $types
+ *   An array containing the node types present in $nodes.
+ */
+function wic_nss_node_load($nodes, $types) {
+  // Return if there are no webforms present.
+  if (!in_array('webform', $types)) {
+    return;
+  }
+  global $user;
+
+  foreach ($nodes as $nid => $node) {
+    // Skip any nodes not part of a book.
+    if (!isset($node->book['bid'])) {
+      continue;
+    }
+    $bid = $node->book['bid'];
+
+    // Query for the node's active webform book and submissions.
+    $results = db_query("SELECT wbid, title FROM {webform_book} WHERE bid = :bid AND uid = :uid AND status = 1", array(':bid' => $bid, ':uid' => $user->uid));
+    $result = $results->fetchObject();
+    if ($result === FALSE) {
+      continue;
+    }
+    $wbid = $result->wbid;
+    $title = $result->title;
+    $results = db_query("SELECT COUNT(sid) as submission_count FROM {webform_book_index} WHERE wbid = :wbid AND nid = :nid", array(':wbid' => $wbid, ':nid' => $nid));
+    $submission_count = reset($results->fetchCol());
+    // Load the active webform book data into the node object.
+    $nodes[$nid]->webform_book = array(
+      'wbid' => $wbid,
+      'title' => $title,
+      'submission_count' => $submission_count,
+    );
+  }
 }
 
 /**
@@ -376,7 +419,7 @@ function wic_nss_webform_submission_insert($node, $submission) {
   }
 
   // Determine if the user has an active submission set for this webform book.
-  $results = db_query("SELECT wbid, title FROM webform_book WHERE nid = :nid AND uid = :uid AND status = 1", array(':nid' => $bid, ':uid' => $user->uid));
+  $results = db_query("SELECT wbid, title FROM webform_book WHERE bid = :bid AND uid = :uid AND status = 1", array(':bid' => $bid, ':uid' => $user->uid));
   $result = $results->fetchObject();
   // Return if the user does not have an active submission set.
   if ($result === FALSE) {
@@ -390,6 +433,7 @@ function wic_nss_webform_submission_insert($node, $submission) {
   $query = db_insert('webform_book_index')
     ->fields(array(
       'wbid' => $wbid,
+      'nid' => $node->nid,
       'sid' => $submission->sid,
       'created' => REQUEST_TIME,
     ))

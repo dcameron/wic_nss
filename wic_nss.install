@@ -35,7 +35,7 @@ function wic_nss_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'nid' => array(
+      'bid' => array(
         'description' => 'The book.nid to which this webform book is linked.',
         'type' => 'int',
         'unsigned' => TRUE,
@@ -76,12 +76,12 @@ function wic_nss_schema() {
     'primary key' => array('wbid'),
     'indexes' => array(
       'default_page' => array('title', 'status'),
-      'submission_insert' => array('nid', 'uid', 'status'),
+      'submission_insert' => array('bid', 'uid', 'status'),
     ),
     'foreign keys' => array(
-      'nid' => array(
+      'bid' => array(
         'table' => 'book',
-        'columns' => array('nid' => 'nid'),
+        'columns' => array('bid' => 'nid'),
       ),
       'uid' => array(
         'table' => 'users',
@@ -95,6 +95,12 @@ function wic_nss_schema() {
     'fields' => array(
       'wbid' => array(
         'description' => 'The webform_book.wbid this record tracks.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'nid' => array(
+        'description' => 'The webform.nid of the submitted form.',
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
