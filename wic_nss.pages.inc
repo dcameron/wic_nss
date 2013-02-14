@@ -170,7 +170,13 @@ function wic_nss_assessment_default_page() {
   global $user;
 
   // Get the current user's assessments.
-  $assessments = wic_nss_get_assessments_by_user($user->uid);
+  $wbids = array();
+  // Query for the assessment IDs owned by this user.
+  $results = db_query('SELECT wbid FROM {webform_book} WHERE uid = :uid ORDER BY status DESC, title ASC', array(':uid' => $user->uid));
+  foreach ($results as $result) {
+    $wbids[] = $result->wbid;
+  }
+  $assessments = wic_nss_assessment_load_multiple($wbids);
 
   $output = '';
   // Print a message about activating assessments.
