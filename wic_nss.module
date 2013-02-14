@@ -414,3 +414,18 @@ function wic_nss_webform_submission_insert($node, $submission) {
     ->execute();
   drupal_set_message(t('This form submission was saved as part of your %title self-assessment.', array('%title' => $title)));
 }
+
+/**
+ * Implements hook_webform_submission_delete().
+ *
+ * @param $node
+ *   The Webform node on which this submission was made.
+ * @param $submission
+ *   The Webform submission that was just deleted from the database.
+ */
+function wic_nss_webform_submission_delete($node, $submission) {
+  // Delete the submission record from {webform_book_index}.
+  db_delete('webform_book_index')
+    ->condition('sid', $submission->sid)
+    ->execute();
+}
