@@ -250,7 +250,16 @@ function wic_nss_menu() {
       'page callback' => 'wic_nss_assessment_activate',
       'page arguments' => array(1),
       'access arguments' => array('access assessments'),
+      'weight' => 2,
       'type' => MENU_CALLBACK,
+      'file' => 'wic_nss.pages.inc',
+    ),
+    'assessments/%wic_nss_assessment/print' => array(
+      'title' => 'Print',
+      'page callback' => 'wic_nss_assessment_print_page',
+      'page arguments' => array(1),
+      'access arguments' => array('access assessments'),
+      'type' => MENU_NORMAL_ITEM,
       'file' => 'wic_nss.pages.inc',
     ),
     'admin/content/webform-book' => array(
@@ -409,6 +418,11 @@ function wic_nss_theme($existing, $type, $theme, $path) {
   return array(
     'menu_link__wic_nss_book_toc' => array(
       'render element' => 'element',
+    ),
+    'wic_nss_assessment_print_page' => array(
+      'variables' => array('assessment' => NULL, 'nodes' => array(), 'submissions' => array(), 'rendered_submissions' => array()),
+      'template' => 'templates/wic_nss_assessment_print_page',
+      'file' => 'wic_nss.pages.inc',
     ),
   );
 }
