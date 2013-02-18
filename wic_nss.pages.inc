@@ -290,6 +290,9 @@ function wic_nss_assessment_print_page($assessment) {
   $submissions = array();
   $rendered_submissions = array();
 
+  // Set the page title.
+  drupal_set_title(t('Print @title', array('@title' => $assessment->title)));
+
   // Query for all sids in this assessment.
   $results = db_query("SELECT nid, sid FROM {webform_book_index} WHERE wbid = :wbid ORDER BY created ASC", array(':wbid' => $assessment->wbid));
   foreach ($results as $result) {
@@ -321,5 +324,11 @@ function template_preprocess_wic_nss_assessment_print_page(&$variables) {
     $title = $variables['nodes'][$submission->nid]->title;
     $output[] = '<h2>' . check_plain($title) . "</h2>\n" . $content;
   }
-  $variables['submission_content'] = implode('<hr />', $output);
+  if (empty($output)) {
+    $variables['submission_content'] = '<p>' . t("You haven't submitted any forms for this self-assessment yet." . '</p>
+      <p>' . l(t('Start filling out forms.'), 'node/' . $variables['assessment']->bid) . '</p>');
+  }
+  else {
+    $variables['submission_content'] = implode('<hr />', $output);
+  }
 }
