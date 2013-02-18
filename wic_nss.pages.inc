@@ -201,7 +201,7 @@ function wic_nss_assessment_default_page() {
 
     // Create the status text and link.
     if ($assessment->status) {
-      $status = t('Active');
+      $status = t('Active') . ' - ' . l(t('go to the forms'), 'node/' . $assessment->bid);
     }
     else {
       $status = t('Inactive');
