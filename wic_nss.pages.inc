@@ -198,6 +198,10 @@ function wic_nss_assessment_default_page() {
       'title' => t('delete'),
       'href' => 'assessments/' . $assessment->wbid . '/delete',
     );
+    $operations['print'] = array(
+      'title' => t('print'),
+      'href' => 'assessments/' . $assessment->wbid . '/print',
+    );
 
     // Create the status text and link.
     if ($assessment->status) {
