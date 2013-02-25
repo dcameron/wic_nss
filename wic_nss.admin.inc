@@ -6,6 +6,19 @@
  */
 
 /**
+ * Form constructor for the NSS website admin page.
+ */
+function wic_nss_admin_page() {
+  $form['wic_nss_user_register_form_instructions'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Instructions for the user registration form.'),
+    '#default_value' => variable_get('wic_nss_user_register_form_instructions', ''),
+    '#required' => FALSE,
+  );
+  return system_settings_form($form);
+}
+
+/**
  * Form constructor for the webform book admin page.
  */
 function wic_nss_select_books($form, &$form_state) {

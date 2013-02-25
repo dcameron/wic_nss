@@ -206,6 +206,23 @@ function wic_nss_book_children($book_link) {
 }
 
 /**
+ * Implements hook_form_alter().
+ */
+function wic_nss_form_alter(&$form, &$form_state, $form_id) {
+  switch ($form_id) {
+    case 'user_register_form':
+      $instructions = variable_get('wic_nss_user_register_form_instructions', FALSE);
+      if (!empty($instructions)) {
+        $form['nss_instructions'] = array(
+          '#markup' => '<p>' . t('@instructions', array('@instructions' => $instructions)) . '</p>',
+          '#weight' => -15,
+        );
+      }
+      break;
+  }
+}
+
+/**
  * Implments hook_menu().
  */
 function wic_nss_menu() {
@@ -270,6 +287,16 @@ function wic_nss_menu() {
       'access arguments' => array('administer webform books'),
       'type' => MENU_LOCAL_TASK,
       'file' => 'wic_nss.admin.inc',
+    ),
+    'admin/wic-nss' => array(
+      'title' => 'WIC NSS',
+      'description' => 'Administer the WIC NSS self-assessment application',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('wic_nss_admin_page'),
+      'access arguments' => array('administer webform books'),
+      'type' => MENU_NORMAL_ITEM,
+      'file' => 'wic_nss.admin.inc',
+      'weight' => 10,
     ),
   );
 }
