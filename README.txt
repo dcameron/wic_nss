@@ -16,4 +16,4 @@ The WIC NSS Self-Assessment module was created for the WICWorks office at NAL.
 INSTALLATION
 ------------
 
-Install as usual, see http://drupal.org/node/70151 for further information.
+Install as usual, see http://drupal.org/node/895232 for further information.
