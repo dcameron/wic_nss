@@ -9,9 +9,9 @@
  * Implements hook_install().
  */
 function wic_nss_install() {
-  // Initialize the book nodes array variable.  The nids of valid webform books
+  // Initialize the book nodes array variable.  The nids of valid assessments
   // are stored in it.  There is no need to create a whole table just for them.
-  variable_set('webform_book_nids', array());
+  variable_set('wic_nss_assessment_nids', array());
 }
 
 /**
@@ -19,120 +19,5 @@ function wic_nss_install() {
  */
 function wic_nss_uninstall() {
   // Delete the module's variables.
-  variable_del('webform_book_nids');
-}
-
-/**
- * Implements hook_schema().
- */
-function wic_nss_schema() {
-  $schema['webform_book'] = array(
-    'description' => 'Stores instances of webform books.',
-    'fields' => array(
-      'wbid' => array(
-        'description' => 'The primary identifier for a webform book.',
-        'type' => 'serial',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-      ),
-      'bid' => array(
-        'description' => 'The book.nid to which this webform book is linked.',
-        'type' => 'int',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-      ),
-      'title' => array(
-        'description' => 'The title of this webform book.',
-        'type' => 'varchar',
-        'length' => 255,
-        'not null' => TRUE,
-        'default' => '',
-      ),
-      'uid' => array(
-        'description' => 'The users.uid that owns this webform book.',
-        'type' => 'int',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-      ),
-      'status' => array(
-        'description' => "Boolean indictating where the webform book is the user's active (1) book or not (0).",
-        'type' => 'int',
-        'not null' => TRUE,
-        'default' => 0,
-      ),
-      'created' => array(
-        'description' => 'The Unix timestamp when the webform book was created.',
-        'type' => 'int',
-        'not null' => TRUE,
-        'default' => 0,
-      ),
-      'changed' => array(
-        'description' => 'The Unix timestamp when the webform book was most recently saved.',
-        'type' => 'int',
-        'not null' => TRUE,
-        'default' => 0,
-      ),
-    ),
-    'primary key' => array('wbid'),
-    'indexes' => array(
-      'default_page' => array('title', 'uid', 'status'),
-      'submission_insert' => array('bid', 'uid', 'status'),
-    ),
-    'foreign keys' => array(
-      'bid' => array(
-        'table' => 'book',
-        'columns' => array('bid' => 'nid'),
-      ),
-      'uid' => array(
-        'table' => 'users',
-        'columns' => array('uid' => 'uid'),
-      ),
-    ),
-  );
-
-  $schema['webform_book_index'] = array(
-    'description' => 'Maintains webform book/submission relationships.',
-    'fields' => array(
-      'wbid' => array(
-        'description' => 'The webform_book.wbid this record tracks.',
-        'type' => 'int',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-      ),
-      'nid' => array(
-        'description' => 'The webform.nid of the submitted form.',
-        'type' => 'int',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-      ),
-      'sid' => array(
-        'description' => 'The webform_submissions.sid.',
-        'type' => 'int',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-      ),
-      'created' => array(
-        'description' => 'The UNIX timestamp when the record was created.',
-        'type' => 'int',
-        'not null' => TRUE,
-        'default' => 0,
-      ),
-    ),
-    'indexes' => array(
-      'node_load' => array('wbid', 'nid'),
-      'webform_submission_delete' => array('sid'),
-    ),
-    'foreign keys' => array(
-      'wbid' => array(
-        'table' => 'webform_book',
-        'columns' => array('wbid' => 'wbid'),
-      ),
-      'sid' => array(
-        'table' => 'webform_submissions',
-        'columns' => array('sid' => 'sid'),
-      ),
-    ),
-  );
-
-  return $schema;
+  variable_del('wic_nss_assessment_nids');
 }

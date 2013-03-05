@@ -32,122 +32,6 @@ function theme_menu_link__wic_nss_book_toc(array $variables) {
 }
 
 /**
- * Delete an assessment from the database.
- *
- * @param int $id
- *   An assessment ID.
- */
-function wic_nss_assessment_delete($wbid) {
-  // Delete the record from the webform_book table.
-  $query = db_delete('webform_book')
-    ->condition('wbid', $wbid)
-    ->execute();
-
-  // Delete records from the webform_book_index table.
-  $query = db_delete('webform_book_index')
-    ->condition('wbid', $wbid)
-    ->execute();
-}
-
-/**
- * Load an assessment object from the database.
- *
- * @param int $id
- *   The assessment ID.
- */
-function wic_nss_assessment_load($wbid) {
-  $wbids = array($wbid);
-  $assessment = wic_nss_assessment_load_multiple($wbids);
-  return $assessment ? reset($assessment) : FALSE;
-}
-
-/**
- * Load an array of assessment objects from the database.
- *
- * @param int $id
- *   The assessment ID.
- */
-function wic_nss_assessment_load_multiple($wbids) {
-  $assessments = array();
-  foreach ($wbids as $wbid) {
-    $results = db_query("SELECT wbid, bid, title, uid, status, created, changed FROM {webform_book} WHERE wbid = :wbid", array(':wbid' => $wbid));
-    foreach ($results as $result) {
-      $assessments[$result->wbid] = $result;
-    }
-  }
-  return $assessments;
-}
-
-/**
- * Save changes to an assessment or add a new assessment.
- *
- * @param $assessment
- *   An assessment object.
- *
- * @return
- *   The saved assessment object or FALSE.
- */
-function wic_nss_assessment_save($assessment) {
-  $transaction = db_transaction();
-
-  try {
-    // Update the changed timestamp.
-    $assessment->changed = REQUEST_TIME;
-
-    // Save new assessments.
-    if (!isset($assessment->wbid)) {
-      // Set some default values for the assessment.
-      $assessment->created = REQUEST_TIME;
-
-      $assessment->wbid = db_insert('webform_book')
-        ->fields(array(
-          'bid' => $assessment->bid,
-          'title' => $assessment->title,
-          'uid' => $assessment->uid,
-          'status' => $assessment->status,
-          'created' => $assessment->created,
-          'changed' => $assessment->changed,
-        ))
-        ->execute();
-    }
-    // Update existing assessments.
-    else {
-      $query = db_update('webform_book')
-        ->fields(array(
-          'bid' => $assessment->bid,
-          'title' => $assessment->title,
-          'status' => $assessment->status,
-          'changed' => $assessment->changed,
-        ))
-        ->condition('wbid', $assessment->wbid)
-        ->execute();
-    }
-  }
-  catch (Exception $e) {
-    $transaction->rollback();
-    watchdog_exception('wic_nss', $e);
-    throw $e;
-    return FALSE;
-  }
-  return $assessment;
-}
-
-/**
- * Deactivates all assessments for the given user.
- *
- * @param int $uid
- *   A user ID.
- */
-function wic_nss_assessment_status_deactivate($uid) {
-  $query = db_update('webform_book')
-    ->fields(array(
-      'status' => 0,
-    ))
-    ->condition('uid', $uid)
-    ->execute();
-}
-
-/**
  * Formats the menu links for the child pages of the current page.
  *
  * @param $book_link
@@ -191,12 +75,12 @@ function wic_nss_book_children($book_link) {
       $nid = (int) strtok('/');
       // Check that the node type is a webform.
       $node = node_load($nid);
-      if ($node->type != 'webform' || !isset($node->webform_book)) {
+      if ($node->type != 'webform') {
         continue;
       }
       // Pass the number of the current user's submissions to the link theme
       // function.
-      $elements[$mlid]['#webform_is_submitted'] = $node->webform_book['submission_count'];
+      $elements[$mlid]['#webform_is_submitted'] = webform_get_submission_count($nid, $user->uid);
       $elements[$mlid]['#theme'] = 'menu_link__wic_nss_book_toc';
     }
     //var_dump($elements);
@@ -227,50 +111,7 @@ function wic_nss_form_alter(&$form, &$form_state, $form_id) {
  */
 function wic_nss_menu() {
   return array(
-    'assessments' => array(
-      'title' => 'Your self-assessments',
-      'description' => 'Manage your self-assessments',
-      'page callback' => 'wic_nss_assessment_default_page',
-      'access arguments' => array('access assessments'),
-      'type' => MENU_NORMAL_ITEM,
-      'file' => 'wic_nss.pages.inc',
-    ),
-    'assessments/add' => array(
-      'title' => 'Start a new self-assessment',
-      'page callback' => 'wic_nss_assessment_add_page',
-      'access arguments' => array('access assessments'),
-      'type' => MENU_LOCAL_ACTION,
-      'file' => 'wic_nss.pages.inc',
-    ),
-    'assessments/%wic_nss_assessment/edit' => array(
-      'title' => 'Edit',
-      'page callback' => 'wic_nss_assessment_edit_page',
-      'page arguments' => array(1),
-      'access arguments' => array('access assessments'),
-      'weight' => 0,
-      'type' => MENU_LOCAL_TASK,
-      'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
-      'file' => 'wic_nss.pages.inc',
-    ),
-    'assessments/%wic_nss_assessment/delete' => array(
-      'title' => 'Delete',
-      'page callback' => 'drupal_get_form',
-      'page arguments' => array('wic_nss_assessment_delete_confirm', 1),
-      'access arguments' => array('access assessments'),
-      'weight' => 1,
-      'type' => MENU_LOCAL_TASK,
-      'context' => MENU_CONTEXT_INLINE,
-      'file' => 'wic_nss.pages.inc',
-    ),
-    'assessments/%wic_nss_assessment/activate' => array(
-      'title' => 'Activate',
-      'page callback' => 'wic_nss_assessment_activate',
-      'page arguments' => array(1),
-      'access arguments' => array('access assessments'),
-      'weight' => 2,
-      'type' => MENU_CALLBACK,
-      'file' => 'wic_nss.pages.inc',
-    ),
+    // @todo Update print page.
     'assessments/%wic_nss_assessment/print' => array(
       'title' => 'Print',
       'page callback' => 'wic_nss_assessment_print_page',
@@ -280,11 +121,11 @@ function wic_nss_menu() {
       'file' => 'wic_nss.pages.inc',
     ),
     'admin/content/webform-book' => array(
-      'title' => 'Webform books',
-      'description' => "Manage your site's webform books.",
+      'title' => 'Assessments',
+      'description' => "Manage your site's assessments.",
       'page callback' => 'drupal_get_form',
       'page arguments' => array('wic_nss_select_books'),
-      'access arguments' => array('administer webform books'),
+      'access arguments' => array('administer assessments'),
       'type' => MENU_LOCAL_TASK,
       'file' => 'wic_nss.admin.inc',
     ),
@@ -293,72 +134,12 @@ function wic_nss_menu() {
       'description' => 'Administer the WIC NSS self-assessment application',
       'page callback' => 'drupal_get_form',
       'page arguments' => array('wic_nss_admin_page'),
-      'access arguments' => array('administer webform books'),
+      'access arguments' => array('administer assessments'),
       'type' => MENU_NORMAL_ITEM,
       'file' => 'wic_nss.admin.inc',
       'weight' => 10,
     ),
   );
-}
-
-/**
- * Implements hook_node_load().
- *
- * Loads webform book and submission index data for any webform nodes.
- *
- * @param array $nodes
- *   An array of the nodes being loaded, keyed by nid.
- * @param array $types
- *   An array containing the node types present in $nodes.
- */
-function wic_nss_node_load($nodes, $types) {
-  // Return if there are no webforms present.
-  if (!in_array('webform', $types)) {
-    return;
-  }
-  global $user;
-
-  foreach ($nodes as $nid => $node) {
-    // Skip any nodes not part of a book.
-    if (!isset($node->book['bid'])) {
-      continue;
-    }
-    $bid = $node->book['bid'];
-
-    // Query for the node's active webform book and submissions.
-    $results = db_query("SELECT wbid, title FROM {webform_book} WHERE bid = :bid AND uid = :uid AND status = 1", array(':bid' => $bid, ':uid' => $user->uid));
-    $result = $results->fetchObject();
-    if ($result === FALSE) {
-      continue;
-    }
-    $wbid = $result->wbid;
-    $title = $result->title;
-    $results = db_query("SELECT COUNT(sid) as submission_count FROM {webform_book_index} WHERE wbid = :wbid AND nid = :nid", array(':wbid' => $wbid, ':nid' => $nid));
-    $submission_count = reset($results->fetchCol());
-    // Load the active webform book data into the node object.
-    $nodes[$nid]->webform_book = array(
-      'wbid' => $wbid,
-      'title' => $title,
-      'submission_count' => $submission_count,
-    );
-  }
-}
-
-/**
- * Implements hook_node_view().
- *
- * @param $node
- *   The node that is being assembled for rendering.
- * @param type $view_mode
- *   The $view_mode parameter from node_view().
- * @param type $langcode
- *   The language code used for rendering.
- */
-function wic_nss_node_view($node, $view_mode, $langcode) {
-  // Print a warning message if the user doesn't have an active webform book.
-  if ($node->type == 'webform' && $view_mode == 'full' && isset($node->book['bid']) && !isset($node->webform_book)) {
-    drupal_set_message(t("You don't have an active self-assessment! Any form submissions will not be saved as part of a single report.  You can ") . ' ' . l(t('activate a self-assessment'), 'assessments') . ' or ' . l(t('start a new self-assessment.'), 'assessments/add'), 'warning');
-  }
 }
 
 /**
@@ -373,8 +154,8 @@ function wic_nss_permission() {
       'title' => t('Access self-assessments'),
       'description' => t('Create, edit, and delete self-assessments'),
     ),
-    'administer webform books' => array(
-      'title' => t('Administer webform books'),
+    'administer assessments' => array(
+      'title' => t('Administer assessments'),
     ),
   );
 }
@@ -452,64 +233,4 @@ function wic_nss_theme($existing, $type, $theme, $path) {
       'file' => 'wic_nss.pages.inc',
     ),
   );
-}
-
-/**
- * Implements hook_webform_submission_insert().
- *
- * Records submissions as part of an assessment.
- *
- * @param $node
- *   The Webform node on which this submission was made.
- * @param $submission
- *   The Webform submission that was just inserted into the database.
- */
-function wic_nss_webform_submission_insert($node, $submission) {
-  global $user;
-
-  // Get the bid of the webform.
-  $bid = isset($node->book['bid']) ? $node->book['bid'] : FALSE;
-
-  // Return if the webform was not a book page or the book is not a valid
-  // webform book.
-  if (!$bid || !in_array($bid, variable_get('webform_book_nids', array()))) {
-    return;
-  }
-
-  // Determine if the user has an active submission set for this webform book.
-  $results = db_query("SELECT wbid, title FROM {webform_book} WHERE bid = :bid AND uid = :uid AND status = 1", array(':bid' => $bid, ':uid' => $user->uid));
-  $result = $results->fetchObject();
-  // Return if the user does not have an active submission set.
-  if ($result === FALSE) {
-    return;
-  }
-  // Get the wbid of the active submission set.
-  $wbid = $result->wbid;
-  $title = $result->title;
-
-  // Save the sid to the index.
-  $query = db_insert('webform_book_index')
-    ->fields(array(
-      'wbid' => $wbid,
-      'nid' => $node->nid,
-      'sid' => $submission->sid,
-      'created' => REQUEST_TIME,
-    ))
-    ->execute();
-  drupal_set_message(t('This form submission was saved as part of your %title self-assessment.', array('%title' => $title)));
-}
-
-/**
- * Implements hook_webform_submission_delete().
- *
- * @param $node
- *   The Webform node on which this submission was made.
- * @param $submission
- *   The Webform submission that was just deleted from the database.
- */
-function wic_nss_webform_submission_delete($node, $submission) {
-  // Delete the submission record from {webform_book_index}.
-  db_delete('webform_book_index')
-    ->condition('sid', $submission->sid)
-    ->execute();
 }

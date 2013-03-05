@@ -26,22 +26,22 @@ function wic_nss_select_books($form, &$form_state) {
   if (empty($books)) {
     return array(
       'empty' => array(
-        '#markup' => '<p>' . t('You must create a book node before you anything can be selected as a webform book.') . '</p>',
+        '#markup' => '<p>' . t('You must create a book node before you anything can be selected as an assessment.') . '</p>',
       ),
     );
   }
 
   // Get the nids of existing webform books from the webform_book_nids variable.
-  $webform_books = variable_get('webform_book_nids', array());
+  $assessments = variable_get('wic_nss_assessment_nids', array());
   $form['#tree'] = TRUE;
   $form['instructions'] = array(
-    '#markup' => '<p>' . t('Check the box next to the title of each book that you want to make available as a webform book.') . '</p>',
+    '#markup' => '<p>' . t('Check the box next to the title of each book that you want to make available as an assessment.') . '</p>',
   );
   foreach ($books as $nid => $book) {
     $form['books'][$nid]['status'] = array(
       '#type' => 'checkbox',
       '#title' => $book['title'],
-      '#default_value' => in_array($nid, $webform_books),
+      '#default_value' => in_array($nid, $assessments),
     );
   }
   $form['submit'] = array(
@@ -65,6 +65,6 @@ function wic_nss_select_books_submit($form, &$form_state) {
       $nids[] = $nid;
     }
   }
-  variable_set('webform_book_nids', $nids);
-  drupal_set_message(t('Your webform book settings have been saved.'));
+  variable_set('wic_nss_assessment_nids', $nids);
+  drupal_set_message(t('Your assessment settings have been saved.'));
 }
