@@ -6,107 +6,6 @@
  */
 
 /**
- * Returns HTML for a menu link and submenu.
- *
- * @param $variables
- *   An associative array containing:
- *   - element: Structured array data for a menu link.
- *
- * @ingroup themeable
- */
-function theme_menu_link__wic_nss_book_toc(array $variables) {
-  $element = $variables['element'];
-  $sub_menu = '';
-
-  if ($element['#below']) {
-    $sub_menu = drupal_render($element['#below']);
-  }
-  if ($element['#webform_is_submitted']) {
-    $webform_status = ' <span class="wic-nss-complete">(Completed)</span>';
-  }
-  else {
-    $webform_status = ' <span class="wic-nss-incomplete">(Not completed)</span>';
-  }
-  $output = l($element['#title'], $element['#href'], $element['#localized_options']);
-  return '<li' . drupal_attributes($element['#attributes']) . '>' . $output . $webform_status . $sub_menu . "</li>\n";
-}
-
-/**
- * Formats the menu links for the child pages of the current page.
- *
- * @param $book_link
- *   A fully loaded menu link that is part of the book hierarchy.
- *
- * @return
- *   HTML for the links to the child pages of the current page.
- */
-function wic_nss_book_children($book_link) {
-  $flat = book_get_flat_menu($book_link);
-
-  $children = array();
-
-  if ($book_link['has_children']) {
-    // Walk through the array until we find the current page.
-    do {
-      $link = array_shift($flat);
-    }
-    while ($link && ($link['mlid'] != $book_link['mlid']));
-    // Continue though the array and collect the links whose parent is this page.
-    while (($link = array_shift($flat)) && $link['plid'] == $book_link['mlid']) {
-      $data['link'] = $link;
-      $data['below'] = '';
-      $children[] = $data;
-    }
-  }
-
-  if ($children) {
-    $elements = menu_tree_output($children);
-    // This is where this module's implementation differs from Book's.
-    module_load_include('inc', 'webform', 'includes/webform.submissions');
-    global $user;
-    foreach ($elements as $mlid => $element) {
-      if (!is_numeric($mlid)) {
-        continue;
-      }
-      // Check that the link is for a node.
-      if (strtok($element['#href'], '/') != 'node') {
-        continue;
-      }
-      $nid = (int) strtok('/');
-      // Check that the node type is a webform.
-      $node = node_load($nid);
-      if ($node->type != 'webform') {
-        continue;
-      }
-      // Pass the number of the current user's submissions to the link theme
-      // function.
-      $elements[$mlid]['#webform_is_submitted'] = webform_get_submission_count($nid, $user->uid);
-      $elements[$mlid]['#theme'] = 'menu_link__wic_nss_book_toc';
-    }
-    //var_dump($elements);
-    return drupal_render($elements);
-  }
-  return '';
-}
-
-/**
- * Implements hook_form_alter().
- */
-function wic_nss_form_alter(&$form, &$form_state, $form_id) {
-  switch ($form_id) {
-    case 'user_register_form':
-      $instructions = variable_get('wic_nss_user_register_form_instructions', FALSE);
-      if (!empty($instructions)) {
-        $form['nss_instructions'] = array(
-          '#markup' => '<p>' . t('@instructions', array('@instructions' => $instructions)) . '</p>',
-          '#weight' => -15,
-        );
-      }
-      break;
-  }
-}
-
-/**
  * Implments hook_menu().
  */
 function wic_nss_menu() {
@@ -156,6 +55,39 @@ function wic_nss_permission() {
     ),
     'administer assessments' => array(
       'title' => t('Administer assessments'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function wic_nss_form_alter(&$form, &$form_state, $form_id) {
+  switch ($form_id) {
+    case 'user_register_form':
+      $instructions = variable_get('wic_nss_user_register_form_instructions', FALSE);
+      if (!empty($instructions)) {
+        $form['nss_instructions'] = array(
+          '#markup' => '<p>' . t('@instructions', array('@instructions' => $instructions)) . '</p>',
+          '#weight' => -15,
+        );
+      }
+      break;
+  }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function wic_nss_theme($existing, $type, $theme, $path) {
+  return array(
+    'menu_link__wic_nss_book_toc' => array(
+      'render element' => 'element',
+    ),
+    'wic_nss_assessment_print_page' => array(
+      'variables' => array('assessment' => NULL, 'nodes' => array(), 'submissions' => array(), 'rendered_submissions' => array()),
+      'template' => 'templates/wic_nss_assessment_print_page',
+      'file' => 'wic_nss.pages.inc',
     ),
   );
 }
@@ -220,17 +152,85 @@ function wic_nss_preprocess_book_navigation(&$variables) {
 }
 
 /**
- * Implements hook_theme().
+ * Formats the menu links for the child pages of the current page.
+ *
+ * @param $book_link
+ *   A fully loaded menu link that is part of the book hierarchy.
+ *
+ * @return
+ *   HTML for the links to the child pages of the current page.
  */
-function wic_nss_theme($existing, $type, $theme, $path) {
-  return array(
-    'menu_link__wic_nss_book_toc' => array(
-      'render element' => 'element',
-    ),
-    'wic_nss_assessment_print_page' => array(
-      'variables' => array('assessment' => NULL, 'nodes' => array(), 'submissions' => array(), 'rendered_submissions' => array()),
-      'template' => 'templates/wic_nss_assessment_print_page',
-      'file' => 'wic_nss.pages.inc',
-    ),
-  );
+function wic_nss_book_children($book_link) {
+  $flat = book_get_flat_menu($book_link);
+
+  $children = array();
+
+  if ($book_link['has_children']) {
+    // Walk through the array until we find the current page.
+    do {
+      $link = array_shift($flat);
+    }
+    while ($link && ($link['mlid'] != $book_link['mlid']));
+    // Continue though the array and collect the links whose parent is this page.
+    while (($link = array_shift($flat)) && $link['plid'] == $book_link['mlid']) {
+      $data['link'] = $link;
+      $data['below'] = '';
+      $children[] = $data;
+    }
+  }
+
+  if ($children) {
+    $elements = menu_tree_output($children);
+    // This is where this module's implementation differs from Book's.
+    module_load_include('inc', 'webform', 'includes/webform.submissions');
+    global $user;
+    foreach ($elements as $mlid => $element) {
+      if (!is_numeric($mlid)) {
+        continue;
+      }
+      // Check that the link is for a node.
+      if (strtok($element['#href'], '/') != 'node') {
+        continue;
+      }
+      $nid = (int) strtok('/');
+      // Check that the node type is a webform.
+      $node = node_load($nid);
+      if ($node->type != 'webform') {
+        continue;
+      }
+      // Pass the number of the current user's submissions to the link theme
+      // function.
+      $elements[$mlid]['#webform_is_submitted'] = webform_get_submission_count($nid, $user->uid);
+      $elements[$mlid]['#theme'] = 'menu_link__wic_nss_book_toc';
+    }
+    //var_dump($elements);
+    return drupal_render($elements);
+  }
+  return '';
+}
+
+/**
+ * Returns HTML for a menu link and submenu.
+ *
+ * @param $variables
+ *   An associative array containing:
+ *   - element: Structured array data for a menu link.
+ *
+ * @ingroup themeable
+ */
+function theme_menu_link__wic_nss_book_toc(array $variables) {
+  $element = $variables['element'];
+  $sub_menu = '';
+
+  if ($element['#below']) {
+    $sub_menu = drupal_render($element['#below']);
+  }
+  if ($element['#webform_is_submitted']) {
+    $webform_status = ' <span class="wic-nss-complete">(Completed)</span>';
+  }
+  else {
+    $webform_status = ' <span class="wic-nss-incomplete">(Not completed)</span>';
+  }
+  $output = l($element['#title'], $element['#href'], $element['#localized_options']);
+  return '<li' . drupal_attributes($element['#attributes']) . '>' . $output . $webform_status . $sub_menu . "</li>\n";
 }
