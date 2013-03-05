@@ -31,7 +31,7 @@ function wic_nss_select_books($form, &$form_state) {
     );
   }
 
-  // Get the nids of existing webform books from the webform_book_nids variable.
+  // Get the nids of existing assessments.
   $assessments = variable_get('wic_nss_assessment_nids', array());
   $form['#tree'] = TRUE;
   $form['instructions'] = array(
@@ -58,7 +58,7 @@ function wic_nss_select_books($form, &$form_state) {
  * @see wic_nss_select_books()
  */
 function wic_nss_select_books_submit($form, &$form_state) {
-  // Save the nids of the checked books to the webform_book_nids variable.
+  // Save the nids of the checked books.
   $nids = array();
   foreach ($form_state['values']['books'] as $nid => $value) {
     if ($value['status']) {
