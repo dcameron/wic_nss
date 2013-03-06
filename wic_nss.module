@@ -74,6 +74,40 @@ function wic_nss_form_alter(&$form, &$form_state, $form_id) {
       }
       break;
   }
+
+  // Alter webforms to load the user's last submission as default values.
+  if (strstr($form_id, 'webform_client_form_')) {
+    global $user;
+    $node = $form['#node'];
+    // Return if the user has not submitted this form previously.
+    $count = webform_get_submission_count($node->nid, $user->uid);
+    if ($count == 0) {
+      return;
+    }
+
+    // Query for the sid of the last submission from this user.
+    $result = db_query("SELECT sid FROM webform_submissions WHERE nid = :nid AND uid = :uid ORDER BY submitted DESC", array(':nid' => $node->nid, ':uid' => $user->uid))->fetchObject();
+    $sid = $result->sid;
+    // Load the submission.
+    $submission = webform_get_submission($node->nid, $sid);
+    // Don't set 'webform_client_form_' as the callback or drupal_get_form() and
+    // this function create a loop. Set a non-existant callback and let
+    // wic_nss_forms() deal with setting the callback correctly.
+    $form = !empty($node->webform['components']) ? drupal_get_form('wic_nss_client_form_' . $node->nid, $node, $submission) : '';
+  }
+}
+
+/**
+ * Implements hook_forms().
+ *
+ * Set the webform callbacks to the correct form handler.
+ */
+function wic_nss_forms($form_id) {
+  $forms = array();
+  if (strpos($form_id, 'wic_nss_client_form_') === 0) {
+    $forms[$form_id]['callback'] = 'webform_client_form';
+  }
+  return $forms;
 }
 
 /**
