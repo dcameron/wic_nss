@@ -5,3 +5,7 @@
 .wic-nss-incomplete {
   color: red;
 }
+.webform-component-radios .form-type-radio {
+  display: inline;
+  margin-left: 5px;
+}
