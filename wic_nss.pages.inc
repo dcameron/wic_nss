@@ -36,7 +36,12 @@ function wic_nss_dashboard_page($bid = FALSE) {
   return $page;
 }
 
+/**
+ * Preprocess function for wic_nss_assessment_menu.tpl.php
+ */
 function template_preprocess_wic_nss_assessment_menu(&$variables) {
+  // Add webform submission status text.
+  wic_nss_menu_links_add_webform_submission_status($variables['elements']);
   return;
 }
 
