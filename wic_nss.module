@@ -10,12 +10,26 @@
  */
 function wic_nss_menu() {
   return array(
-    // @todo Update print page.
-    'assessments/%wic_nss_assessment/print' => array(
-      'title' => 'Print',
+    'dashboard' => array(
+      'title' => 'Your assessment dashboard',
+      'page callback' => 'wic_nss_dashboard_page',
+      'access arguments' => array('access assessment dashboard'),
+      'type' => MENU_NORMAL_ITEM,
+      'file' => 'wic_nss.pages.inc',
+    ),
+    'dashboard/%wic_nss_assessment' => array(
+      'title' => 'Your assessment dashboard',
+      'page callback' => 'wic_nss_dashboard_page',
+      'page arguments' => array(1),
+      'access arguments' => array('access assessment dashboard'),
+      'type' => MENU_NORMAL_ITEM,
+      'file' => 'wic_nss.pages.inc',
+    ),
+    'dashboard/%wic_nss_assessment/print' => array(
+      'title' => 'Print assessment',
       'page callback' => 'wic_nss_assessment_print_page',
       'page arguments' => array(1),
-      'access arguments' => array('access assessments'),
+      'access arguments' => array('access assessment dashboard'),
       'type' => MENU_NORMAL_ITEM,
       'file' => 'wic_nss.pages.inc',
     ),
@@ -42,6 +56,25 @@ function wic_nss_menu() {
 }
 
 /**
+ * Menu loader callback: Verifies the bid is a valid assessment book node.
+ *
+ * @param int $bid
+ *   The nid of the assessment book node.
+ *
+ * @return
+ *   The book_link of the assessment book node.
+ */
+function wic_nss_assessment_load($bid) {
+  // Verify the $bid is a valid assessment.
+  if (!in_array($bid, variable_get('wic_nss_assessment_nids', array()))) {
+    return drupal_not_found();
+  }
+
+  // Return the bid.
+  return $bid;
+}
+
+/**
  * Implements hook_permission().
  *
  * @return array
@@ -49,9 +82,9 @@ function wic_nss_menu() {
  */
 function wic_nss_permission() {
   return array(
-    'access assessments' => array(
-      'title' => t('Access self-assessments'),
-      'description' => t('Create, edit, and delete self-assessments'),
+    'access assessment dashboard' => array(
+      'title' => t('Access self-assessment dashboard'),
+      'description' => t('Access the dashboard page and print submission reports.'),
     ),
     'administer assessments' => array(
       'title' => t('Administer assessments'),
@@ -117,6 +150,11 @@ function wic_nss_theme($existing, $type, $theme, $path) {
   return array(
     'menu_link__wic_nss_book_toc' => array(
       'render element' => 'element',
+    ),
+    'wic_nss_assessment_menu' => array(
+      'variables' => array('elements' => array()),
+      'template' => 'templates/wic_nss_assessment_menu',
+      'file' => 'wic_nss.pages.inc',
     ),
     'wic_nss_assessment_print_page' => array(
       'variables' => array('assessment' => NULL, 'nodes' => array(), 'submissions' => array(), 'rendered_submissions' => array()),

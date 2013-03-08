@@ -6,6 +6,41 @@
  */
 
 /**
+ * Page callback: Displays the submission status of webforms in assessments.
+ *
+ * @param int $bid
+ *   The nid of the assessment book node.
+ */
+function wic_nss_dashboard_page($bid = FALSE) {
+  $bids = array();
+  // Load all assessment book nodes if the one isn't specified.
+  if (!$bid) {
+    $bids = variable_get('wic_nss_assessment_nids', array());
+  }
+  else {
+    $bids[] = $bid;
+  }
+
+  if (empty($bids)) {
+    return '<p>' . t("We're sorry, there are no self-assessments set up yet.  Please contact an administrator.") . '</p>';
+  }
+  $page = '';
+  $nodes = node_load_multiple($bids);
+  foreach ($nodes as $nid => $node) {
+    $tree = menu_tree_all_data($node->book['menu_name']);
+    $page['book_menu_' . $nid] = array(
+      '#theme' => 'wic_nss_assessment_menu',
+      '#elements' => menu_tree_output($tree),
+    );
+  }
+  return $page;
+}
+
+function template_preprocess_wic_nss_assessment_menu(&$variables) {
+  return;
+}
+
+/**
  * Page callback: Displays all submissions in an assessment.
  *
  * @param $assessment
