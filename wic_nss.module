@@ -112,17 +112,11 @@ function wic_nss_form_alter(&$form, &$form_state, $form_id) {
   if (strstr($form_id, 'webform_client_form_')) {
     global $user;
     $node = $form['#node'];
-    // Return if the user has not submitted this form previously.
-    $count = webform_get_submission_count($node->nid, $user->uid);
-    if ($count == 0) {
+    // Load the submission.
+    $submission = wic_nss_get_last_webform_submission($node->nid, $user->uid);
+    if ($submission == FALSE) {
       return;
     }
-
-    // Query for the sid of the last submission from this user.
-    $result = db_query("SELECT sid FROM webform_submissions WHERE nid = :nid AND uid = :uid ORDER BY submitted DESC", array(':nid' => $node->nid, ':uid' => $user->uid))->fetchObject();
-    $sid = $result->sid;
-    // Load the submission.
-    $submission = webform_get_submission($node->nid, $sid);
     // Don't set 'webform_client_form_' as the callback or drupal_get_form() and
     // this function create a loop. Set a non-existant callback and let
     // wic_nss_forms() deal with setting the callback correctly.
@@ -141,6 +135,30 @@ function wic_nss_forms($form_id) {
     $forms[$form_id]['callback'] = 'webform_client_form';
   }
   return $forms;
+}
+
+/**
+ * Returns a user's last submission to the node's webform.
+ *
+ * @param int $nid
+ *   The nid of the webform node.
+ * @param int $uid
+ *   The uid of the user.
+ *
+ * @return
+ *   FALSE or the fully-loaded submission object.
+ */
+function wic_nss_get_last_webform_submission($nid, $uid) {
+    // Return if the user has not submitted this form previously.
+    $count = webform_get_submission_count($nid, $uid);
+    if ($count == 0) {
+      return FALSE;
+    }
+
+  // Query for the sid of the last submission from this user.
+  $result = db_query("SELECT sid FROM webform_submissions WHERE nid = :nid AND uid = :uid ORDER BY submitted DESC", array(':nid' => $nid, ':uid' => $uid))->fetchObject();
+  // Load and return the submission.
+  return webform_get_submission($nid, $result->sid);
 }
 
 /**
