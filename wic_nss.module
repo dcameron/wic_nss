@@ -149,11 +149,13 @@ function wic_nss_forms($form_id) {
  *   FALSE or the fully-loaded submission object.
  */
 function wic_nss_get_last_webform_submission($nid, $uid) {
-    // Return if the user has not submitted this form previously.
-    $count = webform_get_submission_count($nid, $uid);
-    if ($count == 0) {
-      return FALSE;
-    }
+  module_load_include('inc', 'webform', 'includes/webform.submissions');
+
+  // Return if the user has not submitted this form previously.
+  $count = webform_get_submission_count($nid, $uid);
+  if ($count == 0) {
+    return FALSE;
+  }
 
   // Query for the sid of the last submission from this user.
   $result = db_query("SELECT sid FROM webform_submissions WHERE nid = :nid AND uid = :uid ORDER BY submitted DESC", array(':nid' => $nid, ':uid' => $uid))->fetchObject();

@@ -27,10 +27,17 @@ function wic_nss_dashboard_page($bid = FALSE) {
   $page = '';
   $nodes = node_load_multiple($bids);
   foreach ($nodes as $nid => $node) {
+    // Print a menu of nodes in each assessment.
     $tree = menu_tree_all_data($node->book['menu_name']);
-    $page['book_menu_' . $nid] = array(
+    $page['assessment_menu_' . $nid] = array(
       '#theme' => 'wic_nss_assessment_menu',
       '#elements' => menu_tree_output($tree),
+    );
+    // Print a link to the assessment's print page.
+    $page['assessment_print_page_' . $nid] = array(
+      '#prefix' => '<div class="assessment-print-link">',
+      '#markup' => l(t('Print this assessment'), 'dashboard/' . $nid . '/print'),
+      '#suffix' => '</div>',
     );
   }
   return $page;
@@ -48,30 +55,37 @@ function template_preprocess_wic_nss_assessment_menu(&$variables) {
 /**
  * Page callback: Displays all submissions in an assessment.
  *
- * @param $assessment
- *   A fully-loaded assessment object.
+ * @param int bid
+ *   The nid of the assessment book node.
  */
-function wic_nss_assessment_print_page($assessment) {
-  $nodes = array();
+function wic_nss_assessment_print_page($bid) {
+  global $user;
   $submissions = array();
   $rendered_submissions = array();
 
   // Set the page title.
-  drupal_set_title(t('Print @title', array('@title' => $assessment->title)));
+  //drupal_set_title(t('Print @title', array('@title' => $assessment->title)));
 
-  // Query for all sids in this assessment.
-  $results = db_query("SELECT nid, sid FROM {webform_book_index} WHERE wbid = :wbid ORDER BY created ASC", array(':wbid' => $assessment->wbid));
-  foreach ($results as $result) {
-    $node = webform_menu_load($result->nid);
-    $submission = webform_menu_submission_load($result->sid, $result->nid);
-    $nodes[$result->nid] = $node;
-    $submissions[$result->sid] = $submission;
-    $rendered_submissions[$result->sid] = webform_submission_render($node, $submission, NULL, 'html');
+  // Query for all nids in this assessment.
+  $nids = db_query("SELECT nid FROM {book} WHERE bid = :bid", array(':bid' => $bid))->fetchCol();
+  $nodes = node_load_multiple($nids);
+  foreach ($nodes as $nid => $node) {
+    if ($node->type != 'webform') {
+      continue;
+    }
+    // Load the user's most recent submission for this webform node.
+    $submission = wic_nss_get_last_webform_submission($nid, $user->uid);
+    if ($submission == FALSE) {
+      continue;
+    }
+    $submissions[$submission->sid] = $submission;
+    // Render the html view of the submission.
+    $rendered_submissions[$submission->sid] = webform_submission_render($node, $submission, NULL, 'html');
   }
 
   $page = array(
     '#theme' => 'wic_nss_assessment_print_page',
-    '#assessment' => $assessment,
+    '#bid' => $bid,
     '#nodes' => $nodes,
     '#submissions' => $submissions,
     '#rendered_submissions' => $rendered_submissions,
@@ -92,7 +106,7 @@ function template_preprocess_wic_nss_assessment_print_page(&$variables) {
   }
   if (empty($output)) {
     $variables['submission_content'] = '<p>' . t("You haven't submitted any forms for this self-assessment yet." . '</p>
-      <p>' . l(t('Start filling out forms.'), 'node/' . $variables['assessment']->bid) . '</p>');
+      <p>' . l(t('Start filling out forms.'), 'node/' . $variables['bid']) . '</p>');
   }
   else {
     $variables['submission_content'] = implode('<hr />', $output);
