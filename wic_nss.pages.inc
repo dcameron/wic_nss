@@ -88,9 +88,6 @@ function wic_nss_assessment_print_page($bid) {
   $submissions = array();
   $rendered_submissions = array();
 
-  // Set the page title.
-  //drupal_set_title(t('Print @title', array('@title' => $assessment->title)));
-
   // Query for all nids in this assessment.
   $nids = db_query("SELECT nid FROM {book} WHERE bid = :bid", array(':bid' => $bid))->fetchCol();
   $nodes = node_load_multiple($nids);
