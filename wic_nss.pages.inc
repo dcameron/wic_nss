@@ -6,6 +6,25 @@
  */
 
 /**
+ * Title callback: Returns the title of the assessment dashboard page.
+ *
+ * Set the title equal to the assessment's book node title here.  That way
+ * bookmark and menu links are correctly displayed like "Your assessment
+ * dashboard >> Node title."  This is overridden in wic_nss_dashboard_page() to
+ * include "Your assessment dashboard: " before the node title.
+ *
+ * @param int $bid
+ *   The nid of the assessment's book node.
+ *
+ * @return string
+ *   The title of the page.
+ */
+function wic_nss_dashboard_page_title($bid) {
+  $node = node_load($bid);
+  return $node->title;
+}
+
+/**
  * Page callback: Displays the submission status of webforms in assessments.
  *
  * @param int $bid
@@ -13,7 +32,7 @@
  */
 function wic_nss_dashboard_page($bid = FALSE) {
   $bids = array();
-  // Load all assessment book nodes if the one isn't specified.
+  // Load all assessment book nodes if the argument isn't specified.
   if (!$bid) {
     $bids = variable_get('wic_nss_assessment_nids', array());
   }
@@ -26,6 +45,12 @@ function wic_nss_dashboard_page($bid = FALSE) {
   }
   $page = '';
   $nodes = node_load_multiple($bids);
+
+  // Set the page title if we're viewing a specific assessment.
+  if ($bid) {
+    drupal_set_title(t('Your assessment dashboard') . ': ' . $nodes[$bid]->title);
+  }
+
   foreach ($nodes as $nid => $node) {
     // Print a menu of nodes in each assessment.
     $tree = menu_tree_all_data($node->book['menu_name']);

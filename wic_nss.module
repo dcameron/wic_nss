@@ -19,6 +19,8 @@ function wic_nss_menu() {
     ),
     'dashboard/%wic_nss_assessment' => array(
       'title' => 'Your assessment dashboard',
+      'title callback' => 'wic_nss_dashboard_page_title',
+      'title arguments' => array(1),
       'page callback' => 'wic_nss_dashboard_page',
       'page arguments' => array(1),
       'access arguments' => array('access assessment dashboard'),
