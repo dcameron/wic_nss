@@ -97,14 +97,25 @@ function wic_nss_assessment_print_page($bid) {
  * Preprocess function for wic_nss_assessment_print_page.tpl.php
  */
 function template_preprocess_wic_nss_assessment_print_page(&$variables) {
+  // Create an array of links for a jump menu.
+  $content_links = array();
+  // Create a single content array with the elements we need to render.
   $variables['submission_content'] = array();
   foreach ($variables['rendered_submissions'] as $sid => $content) {
-    // Prepend the webform node's title to the rendered submission content.
     $submission = $variables['submissions'][$sid];
     $title = $variables['nodes'][$submission->nid]->title;
+    // Add a link to the jump menu.
+    $content_links[] = array(
+      'title' => $title,
+      'href' => 'dashboard/' . $variables['bid'] . '/print',
+      'fragment' => 'submission-' . $sid,
+    );
+    // Add the submission's content and node title to the content array.
     $variables['submission_content'][] = array(
+      'sid' => $sid,
       'title' => check_plain($title),
       'content' => $content,
     );
   }
+  $variables['table_of_contents'] = theme('links', array('links' => $content_links));
 }
