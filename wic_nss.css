@@ -9,3 +9,11 @@
   display: inline;
   margin-left: 5px;
 }
+.wic-nss-webform-submission {
+  border-bottom: 2px solid #97BE49;
+  margin-bottom: 1em;
+}
+.wic-nss-webform-submission:last-child {
+  border-bottom: none;
+  margin-bottom: none;
+}

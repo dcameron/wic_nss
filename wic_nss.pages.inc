@@ -97,18 +97,14 @@ function wic_nss_assessment_print_page($bid) {
  * Preprocess function for wic_nss_assessment_print_page.tpl.php
  */
 function template_preprocess_wic_nss_assessment_print_page(&$variables) {
-  $output = array();
+  $variables['submission_content'] = array();
   foreach ($variables['rendered_submissions'] as $sid => $content) {
     // Prepend the webform node's title to the rendered submission content.
     $submission = $variables['submissions'][$sid];
     $title = $variables['nodes'][$submission->nid]->title;
-    $output[] = '<h2>' . check_plain($title) . "</h2>\n" . $content;
-  }
-  if (empty($output)) {
-    $variables['submission_content'] = '<p>' . t("You haven't submitted any forms for this self-assessment yet." . '</p>
-      <p>' . l(t('Start filling out forms.'), 'node/' . $variables['bid']) . '</p>');
-  }
-  else {
-    $variables['submission_content'] = implode('<hr />', $output);
+    $variables['submission_content'][] = array(
+      'title' => check_plain($title),
+      'content' => $content,
+    );
   }
 }

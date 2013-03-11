@@ -177,7 +177,7 @@ function wic_nss_theme($existing, $type, $theme, $path) {
       'file' => 'wic_nss.pages.inc',
     ),
     'wic_nss_assessment_print_page' => array(
-      'variables' => array('assessment' => NULL, 'nodes' => array(), 'submissions' => array(), 'rendered_submissions' => array()),
+      'variables' => array('bid' => NULL, 'nodes' => array(), 'submissions' => array(), 'rendered_submissions' => array()),
       'template' => 'templates/wic_nss_assessment_print_page',
       'file' => 'wic_nss.pages.inc',
     ),
