@@ -35,7 +35,15 @@ function wic_nss_menu() {
       'type' => MENU_NORMAL_ITEM,
       'file' => 'wic_nss.pages.inc',
     ),
-    'admin/content/webform-book' => array(
+    'dashboard/%wic_nss_assessment/print/pdf' => array(
+      'title' => 'Print PDF',
+      'page callback' => 'wic_nss_assessment_print_pdf_page',
+      'page arguments' => array(1),
+      'access arguments' => array('access assessment dashboard'),
+      'type' => MENU_LOCAL_TASK,
+      'file' => 'wic_nss.print_pdf.inc',
+    ),
+    'admin/content/assessments' => array(
       'title' => 'Assessments',
       'description' => "Manage your site's assessments.",
       'page callback' => 'drupal_get_form',
