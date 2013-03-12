@@ -39,10 +39,15 @@ function wic_nss_assessment_print_pdf_page($bid) {
     // Render the html view of the submission.
     $pages[$submission->sid] = array(
       'title' => $node->title,
-      'content' => webform_submission_render($node, $submission, NULL, 'html'),
+      'body' => $node->body['und'][0]['safe_value'],
+      'submission' => webform_submission_render($node, $submission, NULL, 'html'),
     );
   }
+
+  // Print the footer on all content pages.
+  $pdf->setPrintFooter(TRUE);
   $pdf = _wic_nss_pdf_content($pdf, $pages);
+
   $pdf = _wic_nss_pdf_table_of_contents($pdf);
 
   // Set the HTTP headers.
@@ -66,6 +71,13 @@ function _wic_nss_init_tcpdf($creator, $author, $title) {
   $pdf->SetAuthor($author);
   $pdf->SetTitle($title);
 
+  // Set defaults for the body.
+  $pdf->SetFont('times', '', 12);
+
+  // Set defaults for the footer.
+  $pdf->SetFooterFont(array('times', '', 10));
+  $pdf->SetFooterMargin(PDF_MARGIN_FOOTER);
+
   return $pdf;
 }
 
@@ -86,9 +98,10 @@ function _wic_nss_pdf_content($pdf, $pages) {
       }
       label {
         display: block;
+        font-weight: bold;
       }
     </style>
-    <h2>' . $page['title'] . '</h2>' . $page['content'];
+    <h2>' . $page['title'] . '</h2>' . $page['body'] . $page['submission'];
     $pdf->writeHTML($html);
   }
   return $pdf;
@@ -98,7 +111,7 @@ function _wic_nss_pdf_table_of_contents($pdf) {
   // Add the table of contents page.
   $pdf->addTOCPage();
   // Don't print the footer.
-  $pdf->setPrintFooter(false);
+  $pdf->setPrintFooter(FALSE);
 
   // Write the page title.
   $html = '<style>
