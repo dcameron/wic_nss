@@ -37,11 +37,15 @@ function wic_nss_assessment_print_pdf_page($bid) {
       continue;
     }
     // Render the html view of the submission.
+    $submission_text = webform_submission_render($node, $submission, NULL, 'html');
+    $submission_text = str_replace('  <label ', '<label ', $submission_text);
+    $submission_text = str_replace('</label>', '</label><br />', $submission_text);
     $pages[$submission->sid] = array(
       'title' => $node->title,
       'body' => $node->body['und'][0]['safe_value'],
-      'submission' => webform_submission_render($node, $submission, NULL, 'html'),
+      'submission' => $submission_text,
     );
+
   }
 
   // Print the footer on all content pages.
@@ -115,12 +119,7 @@ function _wic_nss_pdf_table_of_contents($pdf) {
 
   // Write the page title.
   $html = '<style>
-      h1,
-      h2,
-      h3,
-      h4,
-      h5,
-      h6 {
+      h1 {
         color: #4BBDDA;
         font-family: times;
       }
