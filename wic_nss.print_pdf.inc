@@ -43,6 +43,7 @@ function wic_nss_assessment_print_pdf_page($bid) {
     );
   }
   $pdf = _wic_nss_pdf_content($pdf, $pages);
+  $pdf = _wic_nss_pdf_table_of_contents($pdf);
 
   // Set the HTTP headers.
   drupal_add_http_header('Content-Type', 'application/pdf');
@@ -51,7 +52,7 @@ function wic_nss_assessment_print_pdf_page($bid) {
   drupal_add_http_header('Content-Disposition', 'inline; filename="assessment.pdf";');
 
   // Close and output PDF document.
-  die($pdf->Output($filename, 'S'));
+  die($pdf->Output('assessment.pdf', 'S'));
 }
 
 function _wic_nss_init_tcpdf($creator, $author, $title) {
@@ -71,9 +72,53 @@ function _wic_nss_init_tcpdf($creator, $author, $title) {
 function _wic_nss_pdf_content($pdf, $pages) {
   foreach ($pages as $page) {
     // Add a new page to the PDF document.
-    $html = '<h2>' . $page['title'] . '</h2>' . $page['content'];
     $pdf->AddPage();
+    $pdf->Bookmark($page['title'], 0, 0, '', 'B', array(0, 64, 128));
+    $html = '<style>
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6 {
+        color: #4BBDDA;
+        font-family: times;
+      }
+      label {
+        display: block;
+      }
+    </style>
+    <h2>' . $page['title'] . '</h2>' . $page['content'];
     $pdf->writeHTML($html);
   }
+  return $pdf;
+}
+
+function _wic_nss_pdf_table_of_contents($pdf) {
+  // Add the table of contents page.
+  $pdf->addTOCPage();
+  // Don't print the footer.
+  $pdf->setPrintFooter(false);
+
+  // Write the page title.
+  $html = '<style>
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6 {
+        color: #4BBDDA;
+        font-family: times;
+      }
+    </style>
+    <h1>' . t('Table of contents') . '</h1>';
+  $pdf->writeHTML($html);
+  $pdf->Ln();
+
+  // Add a simple table of contents.
+  $pdf->addTOC(1, 'helvetica', '.', 'INDEX', 'B', array(128, 0, 0));
+  $pdf->endTOCPage();
+
   return $pdf;
 }
