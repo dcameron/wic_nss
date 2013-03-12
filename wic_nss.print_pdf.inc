@@ -37,7 +37,10 @@ function wic_nss_assessment_print_pdf_page($bid) {
       continue;
     }
     // Render the html view of the submission.
-    $pages[$submission->sid] = webform_submission_render($node, $submission, NULL, 'html');
+    $pages[$submission->sid] = array(
+      'title' => $node->title,
+      'content' => webform_submission_render($node, $submission, NULL, 'html'),
+    );
   }
   $pdf = _wic_nss_pdf_content($pdf, $pages);
 
@@ -68,8 +71,9 @@ function _wic_nss_init_tcpdf($creator, $author, $title) {
 function _wic_nss_pdf_content($pdf, $pages) {
   foreach ($pages as $page) {
     // Add a new page to the PDF document.
+    $html = '<h2>' . $page['title'] . '</h2>' . $page['content'];
     $pdf->AddPage();
-    $pdf->writeHTML($page);
+    $pdf->writeHTML($html);
   }
   return $pdf;
 }
