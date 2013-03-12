@@ -14,6 +14,8 @@ class WICNSS extends TCPDF {
    * Customize the PDF header.
    */
   public function Header() {
+    // Print the green background.
+    $this->Image(dirname(__FILE__) . '/images/header-bg.jpg', 5, 5, '', '', 'JPG', '', '', false, 300, '', false, false, 0);
 
   }
 
@@ -23,9 +25,11 @@ class WICNSS extends TCPDF {
   public function Footer() {
     // Set the position of the footer.
     $this->SetY(-20);
-    $this->SetTextColor(128, 128, 128);
+    // Print the green dot behind the page number.
+    $this->Image(dirname(__FILE__) . '/images/footer-bg.jpg', 194, 262, '', '', 'JPG', '', '', false, 300, '', false, false, 0);
     // Print the document name and page number.
-    $this->Cell(170, 10, t('WIC NUTRITION SERVICES STANDARDS SELF-ASSESSMENT'), '', 0, 'R');
-    $this->Cell(15, 10, $this->PageNo() + $this->page_offset, '', 0, 'R');
+    $this->Cell(170, 15, t('WIC NUTRITION SERVICES STANDARDS SELF-ASSESSMENT'), '', 0, 'R');
+    $this->SetTextColor(255, 255, 255);
+    $this->Cell(15, 15, $this->PageNo() + $this->page_offset, '', 0, 'R');
   }
 }

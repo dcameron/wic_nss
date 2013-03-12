@@ -48,11 +48,16 @@ function wic_nss_assessment_print_pdf_page($bid) {
 
   }
 
-  // Print the footer on all content pages.
-  $pdf->setPrintFooter(TRUE);
-  $pdf = _wic_nss_pdf_content($pdf, $pages);
+  // Print the cover page.
+  _wic_nss_pdf_cover_page($pdf);
 
-  $pdf = _wic_nss_pdf_table_of_contents($pdf);
+  // Print the header and footer on all content pages.
+  $pdf->setPrintHeader(TRUE);
+  $pdf->setPrintFooter(TRUE);
+  $pdf->SetMargins(PDF_MARGIN_LEFT, 30, PDF_MARGIN_RIGHT);
+  _wic_nss_pdf_content($pdf, $pages);
+
+  _wic_nss_pdf_table_of_contents($pdf);
 
   // Set the HTTP headers.
   drupal_add_http_header('Content-Type', 'application/pdf');
@@ -77,6 +82,8 @@ function _wic_nss_init_tcpdf($creator, $author, $title) {
 
   // Set defaults for the body.
   $pdf->SetFont('times', '', 12);
+  $pdf->SetMargins(PDF_MARGIN_LEFT, 30, PDF_MARGIN_RIGHT);
+  $pdf->setImageScale(PDF_IMAGE_SCALE_RATIO);
 
   // Set defaults for the footer.
   $pdf->SetFooterFont(array('times', '', 10));
@@ -85,7 +92,27 @@ function _wic_nss_init_tcpdf($creator, $author, $title) {
   return $pdf;
 }
 
-function _wic_nss_pdf_content($pdf, $pages) {
+function _wic_nss_pdf_cover_page(&$pdf) {
+  // Don't print the header or footer.
+  $pdf->setPrintHeader(FALSE);
+  $pdf->setPrintFooter(FALSE);
+
+  $pdf->AddPage();
+  $pdf->Image(dirname(__FILE__) . '/images/cover-bg.jpg', 0, 25, '', '', '', '', '', FALSE, 300, 'C', FALSE, FALSE, 0);
+
+  // Print text.
+  //$text_color = isset($vars['cookbook_cover_text_color']) ? $vars['cookbook_cover_text_color'] : '#000099';
+  $html = '<span style="color: #FFFFFF; font-size: 35pt;">Self-Assessment</span><br />
+    <span style="color: #FFFFFF; font-size: 15pt;">Created: ' . date('F d, Y') . '</span>';
+  $pdf->SetTopMargin(175);
+  $pdf->SetLeftMargin(100);
+  $pdf->writeHTML($html, TRUE, FALSE, TRUE, FALSE, '');
+
+  // Explicitly end the cover page so that the top margin and header can be reset.
+  $pdf->endPage();
+}
+
+function _wic_nss_pdf_content(&$pdf, $pages) {
   foreach ($pages as $page) {
     // Add a new page to the PDF document.
     $pdf->AddPage();
@@ -100,18 +127,17 @@ function _wic_nss_pdf_content($pdf, $pages) {
         color: #4BBDDA;
         font-family: times;
       }
-      label {
-        display: block;
+      label,
+      legend {
         font-weight: bold;
       }
     </style>
     <h2>' . $page['title'] . '</h2>' . $page['body'] . $page['submission'];
     $pdf->writeHTML($html);
   }
-  return $pdf;
 }
 
-function _wic_nss_pdf_table_of_contents($pdf) {
+function _wic_nss_pdf_table_of_contents(&$pdf) {
   // Add the table of contents page.
   $pdf->addTOCPage();
   // Don't print the footer.
@@ -129,8 +155,6 @@ function _wic_nss_pdf_table_of_contents($pdf) {
   $pdf->Ln();
 
   // Add a simple table of contents.
-  $pdf->addTOC(1, 'helvetica', '.', 'INDEX', 'B', array(128, 0, 0));
+  $pdf->addTOC(2, 'helvetica', '.', 'INDEX', 'B', array(128, 0, 0));
   $pdf->endTOCPage();
-
-  return $pdf;
 }
