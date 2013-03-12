@@ -25,6 +25,7 @@
   <?php foreach ($submission_content as $submission): ?>
     <div id="<?php print 'submission-' . $submission['sid']; ?>" class="wic-nss-webform-submission">
       <h2><?php print $submission['title']; ?></h2>
+      <?php print render($submission['body']); ?>
       <?php print render($submission['content']); ?>
     </div>
   <?php endforeach; ?>

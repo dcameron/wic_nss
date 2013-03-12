@@ -126,6 +126,7 @@ function template_preprocess_wic_nss_assessment_print_page(&$variables) {
   foreach ($variables['rendered_submissions'] as $sid => $content) {
     $submission = $variables['submissions'][$sid];
     $title = $variables['nodes'][$submission->nid]->title;
+    $body = $variables['nodes'][$submission->nid]->body['und'][0]['safe_value'];
     // Add a link to the jump menu.
     $content_links[] = array(
       'title' => $title,
@@ -136,6 +137,7 @@ function template_preprocess_wic_nss_assessment_print_page(&$variables) {
     $variables['submission_content'][] = array(
       'sid' => $sid,
       'title' => check_plain($title),
+      'body' => $body,
       'content' => $content,
     );
   }
