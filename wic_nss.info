@@ -5,6 +5,8 @@ version = 7.x-1.x
 package = WIC NSS
 
 dependencies[] = book
+dependencies[] = field_collection
+dependencies[] = libraries
 dependencies[] = webform
 
 stylesheets[all][] = wic_nss.css
