@@ -38,6 +38,8 @@ function wic_nss_assessment_print_pdf_page($bid) {
     }
     // Render the html view of the submission.
     $submission_text = webform_submission_render($node, $submission, NULL, 'html');
+    $submission_text = str_replace('<fieldset', '<div', $submission_text);
+    $submission_text = str_replace('</fieldset>', '</div>', $submission_text);
     $submission_text = str_replace('  <label ', '<label ', $submission_text);
     $submission_text = str_replace('</label>', '</label><br />', $submission_text);
     $pages[$submission->sid] = array(
@@ -116,7 +118,7 @@ function _wic_nss_pdf_content(&$pdf, $pages) {
   foreach ($pages as $page) {
     // Add a new page to the PDF document.
     $pdf->AddPage();
-    $pdf->Bookmark($page['title'], 0, 0, '', 'B', array(0, 64, 128));
+    $pdf->Bookmark($page['title'], 0, 0, '', '', array(0, 0, 0));
     $html = '<style>
       h1,
       h2,
@@ -127,9 +129,16 @@ function _wic_nss_pdf_content(&$pdf, $pages) {
         color: #4BBDDA;
         font-family: times;
       }
-      label,
-      legend {
+      label {
         font-weight: bold;
+      }
+      div.webform-component-fieldset {
+        border: 1px solid #97BE49;
+      }
+      span.fieldset-legend {
+        background-color: #C8DAA1;
+        font-weight: bold;
+        line-height: 1.5em;
       }
     </style>
     <h2>' . $page['title'] . '</h2>' . $page['body'] . $page['submission'];
