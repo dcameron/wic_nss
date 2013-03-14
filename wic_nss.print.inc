@@ -38,8 +38,10 @@ function wic_nss_assessment_print_pdf_page($bid) {
     }
     // Render the html view of the submission.
     $submission_text = webform_submission_render($node, $submission, NULL, 'html');
-    $submission_text = str_replace('<fieldset', '<div', $submission_text);
-    $submission_text = str_replace('</fieldset>', '</div>', $submission_text);
+    $submission_text = str_replace('<fieldset', '<br /><table', $submission_text);
+    $submission_text = str_replace('<legend><span class="fieldset-legend">', '<tr><td class="fieldset-legend">', $submission_text);
+    $submission_text = str_replace('</span></legend>', '</td></tr><tr><td>', $submission_text);
+    $submission_text = str_replace('</fieldset>', '</td></tr></table>', $submission_text);
     $submission_text = str_replace('  <label ', '<label ', $submission_text);
     $submission_text = str_replace('</label>', '</label><br />', $submission_text);
     $pages[$submission->sid] = array(
@@ -132,11 +134,13 @@ function _wic_nss_pdf_content(&$pdf, $pages) {
       label {
         font-weight: bold;
       }
-      div.webform-component-fieldset {
+      .webform-component-fieldset {
         border: 1px solid #97BE49;
       }
-      span.fieldset-legend {
+      .fieldset-legend {
         background-color: #C8DAA1;
+        border-top: 1px solid #97BE49;
+        border-left: 1px solid #97BE49;
         font-weight: bold;
         line-height: 1.5em;
       }
