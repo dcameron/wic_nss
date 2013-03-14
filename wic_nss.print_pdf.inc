@@ -161,7 +161,9 @@ function _wic_nss_pdf_table_of_contents(&$pdf) {
     </style>
     <h1>' . t('Table of contents') . '</h1>';
   $pdf->writeHTML($html);
-  $pdf->Ln();
+
+  // Set the position where the ToC starts so there is space after the heading.
+  $pdf->SetY(43);
 
   // Add a simple table of contents.
   $pdf->addTOC(2, 'helvetica', '.', 'INDEX', 'B', array(128, 0, 0));
