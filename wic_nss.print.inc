@@ -38,12 +38,8 @@ function wic_nss_assessment_print_pdf_page($bid) {
     }
     // Render the html view of the submission.
     $submission_text = webform_submission_render($node, $submission, NULL, 'html');
-    $submission_text = str_replace('<fieldset', '<br /><table', $submission_text);
-    $submission_text = str_replace('<legend><span class="fieldset-legend">', '<tr><td class="fieldset-legend">', $submission_text);
-    $submission_text = str_replace('</span></legend>', '</td></tr><tr><td>', $submission_text);
-    $submission_text = str_replace('</fieldset>', '</td></tr></table>', $submission_text);
-    $submission_text = str_replace('  <label ', '<label ', $submission_text);
-    $submission_text = str_replace('</label>', '</label><br />', $submission_text);
+    // Prepare the submission text for printing in the PDF.
+    $submission_text = _wic_nss_parse_html($submission_text);
     $pages[$submission->sid] = array(
       'title' => $node->title,
       'body' => $node->body['und'][0]['safe_value'],
@@ -114,6 +110,25 @@ function _wic_nss_pdf_cover_page(&$pdf) {
 
   // Explicitly end the cover page so that the top margin and header can be reset.
   $pdf->endPage();
+}
+
+/**
+ * Replaces some HTML elements in webform submissions with valid TCPDF HTML.
+ *
+ * @param string $html
+ *   An HTML webform submission.
+ *
+ * @return string
+ *   The parsed HTML webform submission.
+ */
+function _wic_nss_parse_html($html) {
+  $html = str_replace('<fieldset', '<br /><table', $html);
+  $html = str_replace('<legend><span class="fieldset-legend">', '<tr><td class="fieldset-legend">', $html);
+  $html = str_replace('</span></legend>', '</td></tr><tr><td>', $html);
+  $html = str_replace('</fieldset>', '</td></tr></table>', $html);
+  $html = str_replace('  <label ', '<label ', $html);
+  $html = str_replace('</label>', '</label><br />', $html);
+  return $html;
 }
 
 function _wic_nss_pdf_content(&$pdf, $pages) {
