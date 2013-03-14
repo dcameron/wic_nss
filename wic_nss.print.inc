@@ -20,7 +20,7 @@ function wic_nss_assessment_print_pdf_page($bid) {
     return t('Error: Cannot load the TCPDF library.  Please contact an administrator.');
   }
 
-  // Initialize the PDF variable.
+  // Initialize the PDF object.
   global $user;
   $book = node_load($bid);
   $creator = variable_get('site_name', 'Drupal');
@@ -51,7 +51,6 @@ function wic_nss_assessment_print_pdf_page($bid) {
       'body' => $node->body['und'][0]['safe_value'],
       'submission' => $submission_text,
     );
-
   }
 
   // Print the cover page.
@@ -125,15 +124,24 @@ function _wic_nss_pdf_cover_page(&$pdf) {
   $pdf->AddPage();
   $pdf->Image(dirname(__FILE__) . '/images/cover-bg.jpg', 0, 25, '', '', '', '', '', FALSE, 300, 'C', FALSE, FALSE, 0);
 
-  // Print text.
-  //$text_color = isset($vars['cookbook_cover_text_color']) ? $vars['cookbook_cover_text_color'] : '#000099';
-  $html = '<span style="color: #FFFFFF; font-size: 35pt;">Self-Assessment</span><br />
-    <span style="color: #FFFFFF; font-size: 15pt;">Created: ' . date('F d, Y') . '</span>';
+  // Print additional title text.
+  $html = '<style>
+      span.title {
+        color: #FFFFFF;
+        font-size: 35pt;
+      }
+      span.created {
+        color: #FFFFFF;
+        font-size: 15pt;
+      }
+    </style>
+    <span class="title">Self-Assessment</span><br />
+    <span class="created">Created: ' . date('F d, Y') . '</span>';
   $pdf->SetTopMargin(175);
   $pdf->SetLeftMargin(100);
   $pdf->writeHTML($html, TRUE, FALSE, TRUE, FALSE, '');
 
-  // Explicitly end the cover page so that the top margin and header can be reset.
+  // End the cover page so that the top margin and header can be reset.
   $pdf->endPage();
 }
 
