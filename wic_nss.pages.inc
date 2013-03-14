@@ -58,11 +58,24 @@ function wic_nss_dashboard_page($bid = FALSE) {
       '#theme' => 'wic_nss_assessment_menu',
       '#elements' => menu_tree_output($tree),
     );
-    // Print a link to the assessment's print page.
-    $page['assessment_print_page_' . $nid] = array(
-      '#prefix' => '<div class="assessment-print-link">',
-      '#markup' => l(t('Print this assessment'), 'dashboard/' . $nid . '/print'),
-      '#suffix' => '</div>',
+    // Print a link to the assessment's print pages.
+    $links = array(
+      'assessment_print_page_' . $nid => array(
+        'title' => t('View a report of your self-assessment.'),
+        'href' => 'dashboard/' . $nid . '/view',
+      ),
+      'assessment_print_pdf_page_' . $nid => array(
+        'title' => t('Print or save a PDF report of your self-assessment.'),
+        'href' => 'dashboard/' . $nid . '/print',
+      ),
+    );
+    $page['print_links_' . $nid] = array(
+      '#theme' => 'links',
+      '#links' => $links,
+      '#heading' => array(
+        'text' => t('Self-assessment report'),
+        'level' => 'h3',
+      ),
     );
   }
   return $page;
@@ -83,7 +96,7 @@ function template_preprocess_wic_nss_assessment_menu(&$variables) {
  * @param int bid
  *   The nid of the assessment book node.
  */
-function wic_nss_assessment_print_page($bid) {
+function wic_nss_assessment_view_page($bid) {
   global $user;
   $submissions = array();
   $rendered_submissions = array();
@@ -106,7 +119,7 @@ function wic_nss_assessment_print_page($bid) {
   }
 
   $page = array(
-    '#theme' => 'wic_nss_assessment_print_page',
+    '#theme' => 'wic_nss_assessment_view_page',
     '#bid' => $bid,
     '#nodes' => $nodes,
     '#submissions' => $submissions,
@@ -116,9 +129,9 @@ function wic_nss_assessment_print_page($bid) {
 }
 
 /**
- * Preprocess function for wic_nss_assessment_print_page.tpl.php
+ * Preprocess function for wic_nss_assessment_view_page.tpl.php
  */
-function template_preprocess_wic_nss_assessment_print_page(&$variables) {
+function template_preprocess_wic_nss_assessment_view_page(&$variables) {
   // Create an array of links for a jump menu.
   $content_links = array();
   // Create a single content array with the elements we need to render.
@@ -130,7 +143,7 @@ function template_preprocess_wic_nss_assessment_print_page(&$variables) {
     // Add a link to the jump menu.
     $content_links[] = array(
       'title' => $title,
-      'href' => 'dashboard/' . $variables['bid'] . '/print',
+      'href' => 'dashboard/' . $variables['bid'] . '/view',
       'fragment' => 'submission-' . $sid,
     );
     // Add the submission's content and node title to the content array.
