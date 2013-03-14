@@ -5,6 +5,12 @@
  * Page callbacks for self-assessment pdf printing.
  */
 
+/**
+ * Page callback: Outputs self-assessment webform submissions as a PDF.
+ *
+ * @param int $bid
+ *   The nid of the assessment's book node.
+ */
 function wic_nss_assessment_print_pdf_page($bid) {
   // Load include files for creating the PDF.
   if ($path = libraries_get_path('tcpdf')) {
@@ -69,6 +75,19 @@ function wic_nss_assessment_print_pdf_page($bid) {
   die($pdf->Output('assessment.pdf', 'S'));
 }
 
+/**
+ * Initializes a PDF object and sets some default formatting.
+ *
+ * @param string $creator
+ *   The name of the site generating the PDF.
+ * @param string $author
+ *   The name of the user who is generating the PDF.
+ * @param string $title
+ *   The title of the PDF.
+ *
+ * @return WICNSS object
+ *   A fully-loaded PDF object.
+ */
 function _wic_nss_init_tcpdf($creator, $author, $title) {
   module_load_include('inc', 'wic_nss', 'wic_nss.class');
 
@@ -92,6 +111,12 @@ function _wic_nss_init_tcpdf($creator, $author, $title) {
   return $pdf;
 }
 
+/**
+ * Inserts a cover page into the PDF document.
+ *
+ * @param WICNSS object $pdf
+ *   A fully-loaded PDF object.
+ */
 function _wic_nss_pdf_cover_page(&$pdf) {
   // Don't print the header or footer.
   $pdf->setPrintHeader(FALSE);
@@ -131,6 +156,12 @@ function _wic_nss_parse_html($html) {
   return $html;
 }
 
+/**
+ * Inserts a content page into the PDF document.
+ *
+ * @param WICNSS object $pdf
+ *   A fully-loaded PDF object.
+ */
 function _wic_nss_pdf_content(&$pdf, $pages) {
   foreach ($pages as $page) {
     // Add a new page to the PDF document.
@@ -165,6 +196,12 @@ function _wic_nss_pdf_content(&$pdf, $pages) {
   }
 }
 
+/**
+ * Inserts a table of contents page into the PDF document.
+ *
+ * @param WICNSS object $pdf
+ *   A fully-loaded PDF object.
+ */
 function _wic_nss_pdf_table_of_contents(&$pdf) {
   // Add the table of contents page.
   $pdf->addTOCPage();
