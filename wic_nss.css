@@ -9,12 +9,12 @@
   display: inline;
   margin-left: 5px;
 }
-.wic-nss-webform-submission,
+.wic-nss-node-display,
 .wic-nss-submissions-toc {
   border-bottom: 2px solid #97BE49;
   margin-bottom: 1em;
 }
-.wic-nss-webform-submission:last-child {
+.wic-nss-node-display:last-child {
   border-bottom: none;
   margin-bottom: none;
 }

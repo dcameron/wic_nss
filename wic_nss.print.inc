@@ -28,29 +28,13 @@ function wic_nss_assessment_print_pdf_page($bid) {
   $title = $book->title;
   $pdf = _wic_nss_init_tcpdf($creator, $author, $title);
 
-  // Add the submissions as pages to the PDF document.
-  $pages = array();
-  // Query for all nids in this assessment.
-  $nids = db_query("SELECT nid FROM {book} WHERE bid = :bid", array(':bid' => $bid))->fetchCol();
-  $nodes = node_load_multiple($nids);
-  foreach ($nodes as $nid => $node) {
-    if ($node->type != 'webform') {
-      continue;
+  // Add the assessment's nodes as pages to the PDF document.
+  $pages = _wic_nss_get_report_content($bid);
+  // Replace the HTML in the submissions with TCPDF-compatible elements.
+  foreach ($pages as $nid => $page) {
+    if (!empty($page['submission'])) {
+      $pages[$nid]['submission'] = _wic_nss_parse_html($page['submission']);
     }
-    // Load the user's most recent submission for this webform node.
-    $submission = wic_nss_get_last_webform_submission($nid, $user->uid);
-    if ($submission == FALSE) {
-      continue;
-    }
-    // Render the html view of the submission.
-    $submission_text = webform_submission_render($node, $submission, NULL, 'html');
-    // Prepare the submission text for printing in the PDF.
-    $submission_text = _wic_nss_parse_html($submission_text);
-    $pages[$submission->sid] = array(
-      'title' => $node->title,
-      'body' => $node->body['und'][0]['safe_value'],
-      'submission' => $submission_text,
-    );
   }
 
   // Print the cover page.

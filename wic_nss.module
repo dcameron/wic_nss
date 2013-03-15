@@ -191,7 +191,7 @@ function wic_nss_theme($existing, $type, $theme, $path) {
       'file' => 'wic_nss.pages.inc',
     ),
     'wic_nss_assessment_view_page' => array(
-      'variables' => array('bid' => NULL, 'nodes' => array(), 'submissions' => array(), 'rendered_submissions' => array()),
+      'variables' => array('bid' => NULL, 'content' => array(),),
       'template' => 'templates/wic_nss_assessment_view_page',
       'file' => 'wic_nss.pages.inc',
     ),
@@ -356,4 +356,70 @@ function theme_menu_link__wic_nss_book_toc(array $variables) {
   }
   $output = l($element['#title'], $element['#href'], $element['#localized_options']);
   return '<li' . drupal_attributes($element['#attributes']) . '>' . $output . $webform_status . $sub_menu . "</li>\n";
+}
+
+/**
+ * Returns content for display from the assessment's nodes.
+ *
+ * @param int $bid
+ *   The nid of the assessment's book node.
+ *
+ * @return array
+ *   An array of content from nodes in the assessment.
+ */
+function _wic_nss_get_report_content($bid) {
+  global $user;
+  $content = array();
+
+  // Get all nids in this assessment from the book's menu tree so nodes will be
+  // displayed in the correct order.
+  $node = node_load($bid);
+  $tree = menu_tree_all_data($node->book['menu_name']);
+  $nids = _wic_nss_get_flat_book_nodes($tree);
+  $nodes = node_load_multiple($nids);
+
+  foreach ($nodes as $nid => $node) {
+    $content[$nid]['title'] = $node->title;
+    $content[$nid]['body'] = $node->body['und'][0]['safe_value'];
+
+    if ($node->type != 'webform') {
+      continue;
+    }
+    // Load the user's most recent submission for this webform node.
+    $submission = wic_nss_get_last_webform_submission($nid, $user->uid);
+    if ($submission == FALSE) {
+      // Don't display any webforms that aren't submitted and don't have child
+      // nodes in the book.
+      if (!$node->book['has_children']) {
+        unset($content[$nid]);
+      }
+      continue;
+    }
+    // Render the html view of the submission.
+    $content[$nid]['submission'] = webform_submission_render($node, $submission, NULL, 'html');
+  }
+  return $content;
+}
+
+/**
+ * Returns a flat array of nids in the menu tree.
+ *
+ * @param array $tree
+ *   A book's menu tree.
+ *
+ * @return array
+ *   A flat array of nids in the menu tree.
+ */
+function _wic_nss_get_flat_book_nodes($tree) {
+  $nids = array();
+  // Get the nid of every element in this level of the tree.
+  foreach($tree as $menu_item) {
+    $link_path = explode('/', $menu_item['link']['link_path']);
+    $nids[] = $link_path[1];
+
+    if (!empty($menu_item['below'])) {
+      $nids += array_merge($nids, _wic_nss_get_flat_book_nodes($menu_item['below']));
+    }
+  }
+  return $nids;
 }

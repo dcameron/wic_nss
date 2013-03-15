@@ -97,33 +97,10 @@ function template_preprocess_wic_nss_assessment_menu(&$variables) {
  *   The nid of the assessment book node.
  */
 function wic_nss_assessment_view_page($bid) {
-  global $user;
-  $submissions = array();
-  $rendered_submissions = array();
-
-  // Query for all nids in this assessment.
-  $nids = db_query("SELECT nid FROM {book} WHERE bid = :bid", array(':bid' => $bid))->fetchCol();
-  $nodes = node_load_multiple($nids);
-  foreach ($nodes as $nid => $node) {
-    if ($node->type != 'webform') {
-      continue;
-    }
-    // Load the user's most recent submission for this webform node.
-    $submission = wic_nss_get_last_webform_submission($nid, $user->uid);
-    if ($submission == FALSE) {
-      continue;
-    }
-    $submissions[$submission->sid] = $submission;
-    // Render the html view of the submission.
-    $rendered_submissions[$submission->sid] = webform_submission_render($node, $submission, NULL, 'html');
-  }
-
   $page = array(
     '#theme' => 'wic_nss_assessment_view_page',
     '#bid' => $bid,
-    '#nodes' => $nodes,
-    '#submissions' => $submissions,
-    '#rendered_submissions' => $rendered_submissions,
+    '#content' => _wic_nss_get_report_content($bid),
   );
   return $page;
 }
@@ -134,24 +111,12 @@ function wic_nss_assessment_view_page($bid) {
 function template_preprocess_wic_nss_assessment_view_page(&$variables) {
   // Create an array of links for a jump menu.
   $content_links = array();
-  // Create a single content array with the elements we need to render.
-  $variables['submission_content'] = array();
-  foreach ($variables['rendered_submissions'] as $sid => $content) {
-    $submission = $variables['submissions'][$sid];
-    $title = $variables['nodes'][$submission->nid]->title;
-    $body = $variables['nodes'][$submission->nid]->body['und'][0]['safe_value'];
+  foreach ($variables['content'] as $nid => $content) {
     // Add a link to the jump menu.
     $content_links[] = array(
-      'title' => $title,
+      'title' => $content['title'],
       'href' => 'dashboard/' . $variables['bid'] . '/view',
-      'fragment' => 'submission-' . $sid,
-    );
-    // Add the submission's content and node title to the content array.
-    $variables['submission_content'][] = array(
-      'sid' => $sid,
-      'title' => check_plain($title),
-      'body' => $body,
-      'content' => $content,
+      'fragment' => 'node-' . $nid,
     );
   }
   $variables['table_of_contents'] = theme('links', array('links' => $content_links));
