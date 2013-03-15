@@ -195,6 +195,9 @@ function wic_nss_theme($existing, $type, $theme, $path) {
       'template' => 'templates/wic_nss_assessment_view_page',
       'file' => 'wic_nss.pages.inc',
     ),
+    'wic_nss_empty_report' => array(
+      'variables' => array('bid' => NULL),
+    ),
   );
 }
 
@@ -379,6 +382,14 @@ function _wic_nss_get_report_content($bid) {
   $nodes = node_load_multiple($nids);
 
   foreach ($nodes as $nid => $node) {
+    // Record the node's parent nid.
+    $parent_nid = $node->book['plid'] ? $nids[$node->book['plid']] : 0;
+    $content[$nid]['#parent_nid'] = $parent_nid;
+    if ($node->book['has_children']) {
+      // Create a flag indicating whether this node has submitted child webforms.
+      $content[$nid]['#child_is_submitted'] = FALSE;
+    }
+
     $content[$nid]['title'] = $node->title;
     $content[$nid]['body'] = $node->body['und'][0]['safe_value'];
 
@@ -397,6 +408,41 @@ function _wic_nss_get_report_content($bid) {
     }
     // Render the html view of the submission.
     $content[$nid]['submission'] = webform_submission_render($node, $submission, NULL, 'html');
+
+    // Set the parent's flag.
+    if ($parent_nid) {
+      $content[$parent_nid]['#child_is_submitted'] = TRUE;
+    }
+  }
+
+  // Filter parent node content that has no submitted children.  Since the array
+  // is in hierarchical order, walk through it in reverse and record childless
+  // parents.  Don't unset them in this pass or the while statement won't set
+  // the pointer correctly to the previous element.
+  $unneeded_content = array();
+  // Set the array pointer to the last element.
+  end($content);
+  do {
+    $current = current($content);
+    // Don't do anything if this node has no children.
+    if (!isset($current['#child_is_submitted'])) {
+      continue;
+    }
+    // Set this node's parent's flag if this has a submitted child.
+    if ($current['#child_is_submitted'] && $current['#parent_nid']) {
+      $content[$current['#parent_nid']]['#child_is_submitted'] = TRUE;
+    }
+    // Record this node if it has no submitted children and no submission.
+    elseif (!$current['#child_is_submitted'] && !isset($content['submission'])) {
+      $unneeded_content[] = key($content);
+    }
+  }
+  // Move the array pointer to the previous element.
+  while (prev($content));
+
+  // Unset the childless node content.
+  foreach ($unneeded_content as $nid) {
+    unset($content[$nid]);
   }
   return $content;
 }
@@ -408,18 +454,25 @@ function _wic_nss_get_report_content($bid) {
  *   A book's menu tree.
  *
  * @return array
- *   A flat array of nids in the menu tree.
+ *   A flat array of nids in the menu tree keyed by mlid.
  */
 function _wic_nss_get_flat_book_nodes($tree) {
   $nids = array();
   // Get the nid of every element in this level of the tree.
   foreach($tree as $menu_item) {
     $link_path = explode('/', $menu_item['link']['link_path']);
-    $nids[] = $link_path[1];
+    $nids[$menu_item['link']['mlid']] = $link_path[1];
 
+    // Get the nids of any child nodes.
     if (!empty($menu_item['below'])) {
-      $nids += array_merge($nids, _wic_nss_get_flat_book_nodes($menu_item['below']));
+      $nids += _wic_nss_get_flat_book_nodes($menu_item['below']);
     }
   }
   return $nids;
+}
+
+function theme_wic_nss_empty_report($variables) {
+  $bid = $variables['bid'];
+  return '<p>' . t("You haven't submitted any forms for this self-assessment yet.") . '</p>
+    <p>' . l(t('Start filling out forms.'), 'node/' . $bid) . '</p>';
 }

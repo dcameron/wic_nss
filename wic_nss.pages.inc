@@ -97,10 +97,18 @@ function template_preprocess_wic_nss_assessment_menu(&$variables) {
  *   The nid of the assessment book node.
  */
 function wic_nss_assessment_view_page($bid) {
+  $content = _wic_nss_get_report_content($bid);
+
+  // Display the empty report message if there is no content to display.
+  if (empty($content)) {
+    return theme('wic_nss_empty_report', array('bid' => $bid));
+  }
+
+  // Display the assessment report.
   $page = array(
     '#theme' => 'wic_nss_assessment_view_page',
     '#bid' => $bid,
-    '#content' => _wic_nss_get_report_content($bid),
+    '#content' => $content,
   );
   return $page;
 }

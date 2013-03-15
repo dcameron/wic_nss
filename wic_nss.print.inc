@@ -20,6 +20,12 @@ function wic_nss_assessment_print_pdf_page($bid) {
     return t('Error: Cannot load the TCPDF library.  Please contact an administrator.');
   }
 
+  // Get the report content.
+  $pages = _wic_nss_get_report_content($bid);
+  if (empty($pages)) {
+    return theme('wic_nss_empty_report', array('bid' => $bid));
+  }
+
   // Initialize the PDF object.
   global $user;
   $book = node_load($bid);
@@ -28,8 +34,6 @@ function wic_nss_assessment_print_pdf_page($bid) {
   $title = $book->title;
   $pdf = _wic_nss_init_tcpdf($creator, $author, $title);
 
-  // Add the assessment's nodes as pages to the PDF document.
-  $pages = _wic_nss_get_report_content($bid);
   // Replace the HTML in the submissions with TCPDF-compatible elements.
   foreach ($pages as $nid => $page) {
     if (!empty($page['submission'])) {
@@ -46,6 +50,7 @@ function wic_nss_assessment_print_pdf_page($bid) {
   $pdf->SetMargins(PDF_MARGIN_LEFT, 30, PDF_MARGIN_RIGHT);
   _wic_nss_pdf_content($pdf, $pages);
 
+  // Add the assessment's nodes as pages to the PDF document.
   _wic_nss_pdf_table_of_contents($pdf);
 
   // Set the HTTP headers.
