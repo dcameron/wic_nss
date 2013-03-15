@@ -183,7 +183,10 @@ function _wic_nss_pdf_content(&$pdf, $pages) {
         line-height: 1.5em;
       }
     </style>
-    <h2>' . $page['title'] . '</h2>' . $page['body'] . $page['submission'];
+    <h2>' . $page['title'] . '</h2>' . $page['body'];
+    if (!empty($page['submission'])) {
+      $html .= $page['submission'];
+    }
     $pdf->writeHTML($html);
   }
 }
