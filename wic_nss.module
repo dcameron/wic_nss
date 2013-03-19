@@ -322,7 +322,7 @@ function wic_nss_menu_links_add_webform_submission_status(&$elements = array()) 
         if ($node->type == 'webform') {
           // Pass the number of the current user's submissions to the link theme
           // function.
-          $elements[$mlid]['#webform_is_submitted'] = webform_get_submission_count($nid, $user->uid);
+          $elements[$mlid]['#webform_submission'] = wic_nss_get_last_webform_submission($nid, $user->uid);
           $elements[$mlid]['#theme'] = 'menu_link__wic_nss_book_toc';
         }
       }
@@ -351,11 +351,12 @@ function theme_menu_link__wic_nss_book_toc(array $variables) {
   if ($element['#below']) {
     $sub_menu = drupal_render($element['#below']);
   }
-  if (!empty($element['#webform_is_submitted'])) {
-    $webform_status = ' <span class="wic-nss-complete">(Completed)</span>';
+  if (!empty($element['#webform_submission'])) {
+    $timestamp = $element['#webform_submission']->submitted;
+    $webform_status = ' <span class="wic-nss-complete">(' . t('Completed on @date', array('@date' => date('F d, Y', $timestamp))) . ')</span>';
   }
   else {
-    $webform_status = ' <span class="wic-nss-incomplete">(Not completed)</span>';
+    $webform_status = ' <span class="wic-nss-incomplete">(' . t('Not completed') . ')</span>';
   }
   $output = l($element['#title'], $element['#href'], $element['#localized_options']);
   return '<li' . drupal_attributes($element['#attributes']) . '>' . $output . $webform_status . $sub_menu . "</li>\n";
