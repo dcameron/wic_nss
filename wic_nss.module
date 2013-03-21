@@ -477,3 +477,29 @@ function theme_wic_nss_empty_report($variables) {
   return '<p>' . t("You haven't submitted any forms for this self-assessment yet.") . '</p>
     <p>' . l(t('Start filling out forms.'), 'node/' . $bid) . '</p>';
 }
+
+function wic_nss_webform_component_info() {
+  return array(
+    'wic_nss_goal' => array(
+      'label' => t('NSS goal sub-form'),
+      'description' => t('Form components for an NSS goal.'),
+      'features' => array(
+        'csv' => TRUE,
+        'default_value' => FALSE,
+        'description' => TRUE,
+        'email' => TRUE,
+        'email_address' => FALSE,
+        'email_name' => FALSE,
+        'required' => TRUE,
+        'title' => TRUE,
+        'title_display' => TRUE,
+        'title_inline' => FALSE,
+        'conditional' => TRUE,
+        'group' => FALSE,
+        'spam_analysis' => FALSE,
+        'attachment' => FALSE,
+      ),
+      'file' => 'wic_nss.component.inc',
+    ),
+  );
+}
