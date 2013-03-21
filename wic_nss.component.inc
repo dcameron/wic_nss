@@ -113,6 +113,11 @@ function _webform_render_wic_nss_goal($component, $value = NULL, $filter = TRUE)
  *   (such as wrapping the text) or as HTML (ensuring consistent output).
  */
 function _webform_display_wic_nss_goal($component, $value, $format = 'html') {
+  // Display nothing if no goal has been set.
+  if (empty($value)) {
+    return '';
+  }
+
   if ($format == 'text') {
     $element = array(
       '#title' => $component['name'],
