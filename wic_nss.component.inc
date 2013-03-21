@@ -13,6 +13,7 @@ function _webform_defaults_wic_nss_goal() {
     'pid' => 0,
     'weight' => 0,
     'extra' => array(
+      'description' => '',
       'title_display' => TRUE,
       'private' => FALSE,
     ),
@@ -35,7 +36,7 @@ function _webform_edit_wic_nss_goal($component) {
 }
 
 /**
- * Render a Webform component to be part of a form.
+ * Render the goal component to be part of a form.
  *
  * @param $component
  *   A Webform component array.
@@ -85,6 +86,97 @@ function _webform_render_wic_nss_goal($component, $value = NULL, $filter = TRUE)
   }
 
   return $form_item;
+}
+
+/**
+ * Display the result of a submission for the goal component.
+ *
+ * @param $component
+ *   A Webform component array.
+ * @param $value
+ *   An array of information containing the submission result, directly
+ *   correlating to the webform_submitted_data database table schema.
+ * @param $format
+ *   Either 'html' or 'text'. Defines the format that the content should be
+ *   returned as. Make sure that returned content is run through check_plain()
+ *   or other filtering functions when returning HTML.
+ *
+ * @return
+ *   A renderable element containing at the very least these properties:
+ *    - #title
+ *    - #weight
+ *    - #component
+ *    - #format
+ *    - #value
+ *   Webform also uses #theme_wrappers to output the end result to the user,
+ *   which will properly format the label and content for use within an e-mail
+ *   (such as wrapping the text) or as HTML (ensuring consistent output).
+ */
+function _webform_display_wic_nss_goal($component, $value, $format = 'html') {
+  if ($format == 'text') {
+    $element = array(
+      '#title' => $component['name'],
+      '#weight' => $component['weight'],
+      '#theme_wrappers' => array('webform_element_text'),
+    );
+  }
+  else {
+    $element = array(
+      '#type' => 'fieldset',
+      '#title' => $component['name'],
+      '#weight' => $component['weight'],
+    );
+  }
+  $element['goal'] = array(
+    '#title' => t('What are your agency’s goals/plans for improvement?'),
+    '#weight' => $component['weight'] + 1,
+    '#theme' => 'webform_display_textarea',
+    '#theme_wrappers' => $format == 'html' ? array('webform_element') : array('webform_element_text'),
+    '#format' => $format,
+    '#value' => isset($value['goal']) ? $value['goal'] : '',
+    '#translatable' => array('title'),
+    '#parents' => array(
+      'goal',
+      'set-a-goal-for-improvement',
+    ),
+  );
+  $element['resources'] = array(
+    '#title' => t('What resources/technical assistance does your agency need to reach your improvement goals/pans?'),
+    '#weight' => $component['weight'] + 2,
+    '#theme' => 'webform_display_textarea',
+    '#theme_wrappers' => $format == 'html' ? array('webform_element') : array('webform_element_text'),
+    '#format' => $format,
+    '#value' => isset($value['resources']) ? $value['resources'] : '',
+    '#translatable' => array('title'),
+    '#parents' => array(
+      'resources',
+      'set-a-goal-for-improvement',
+    ),
+  );
+  $due_date_value = webform_date_array(isset($value['due_date']) ? $value['due_date'] : '', 'date');
+  $element['due_date'] = array(
+    '#title' => t('Set a due date for this goal.'),
+    '#weight' => $component['weight'] + 3,
+    '#theme' => 'webform_display_date',
+    '#theme_wrappers' => $format == 'html' ? array('webform_element') : array('webform_element_text'),
+    '#format' => $format,
+    '#value' => $due_date_value,
+    '#translatable' => array('title'),
+    '#parents' => array(
+      'due_date',
+      'set-a-goal-for-improvement',
+    ),
+  );
+  if ($value['goal_complete']) {
+    $element['goal_complete'] = array(
+      '#markup' => $value['goal_complete'],
+      '#weight' => $component['weight'] + 4,
+    );
+  }
+
+  $element['#format'] = $format;
+
+  return $element;
 }
 
 /**
