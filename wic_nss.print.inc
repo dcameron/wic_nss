@@ -148,7 +148,7 @@ function _wic_nss_parse_html($html) {
   $html = str_replace('<legend><span class="fieldset-legend">', '<tr><td class="fieldset-legend">', $html);
   $html = str_replace('</span></legend>', '</td></tr><tr><td>', $html);
   $html = str_replace('</fieldset>', '</td></tr></table>', $html);
-  $html = str_replace('  <label ', '<label ', $html);
+  $html = str_replace('  <label', '<label', $html);
   $html = str_replace('</label>', '</label><br />', $html);
   return $html;
 }
@@ -177,7 +177,7 @@ function _wic_nss_pdf_content(&$pdf, $pages) {
       label {
         font-weight: bold;
       }
-      .webform-component-fieldset {
+      .form-wrapper {
         border: 1px solid #97BE49;
       }
       .fieldset-legend {
