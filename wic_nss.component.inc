@@ -135,6 +135,9 @@ function _webform_display_wic_nss_goal($component, $value, $format = 'html') {
     '#format' => $format,
     '#value' => isset($value['goal']) ? $value['goal'] : '',
     '#translatable' => array('title'),
+    '#webform_component' => array(
+      'type' => 'textarea',
+    ),
     '#parents' => array(
       'goal',
       'set-a-goal-for-improvement',
@@ -148,6 +151,9 @@ function _webform_display_wic_nss_goal($component, $value, $format = 'html') {
     '#format' => $format,
     '#value' => isset($value['resources']) ? $value['resources'] : '',
     '#translatable' => array('title'),
+    '#webform_component' => array(
+      'type' => 'textarea',
+    ),
     '#parents' => array(
       'resources',
       'set-a-goal-for-improvement',
@@ -162,6 +168,9 @@ function _webform_display_wic_nss_goal($component, $value, $format = 'html') {
     '#format' => $format,
     '#value' => $due_date_value,
     '#translatable' => array('title'),
+    '#webform_component' => array(
+      'type' => 'date',
+    ),
     '#parents' => array(
       'due_date',
       'set-a-goal-for-improvement',
