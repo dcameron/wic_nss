@@ -215,7 +215,33 @@ function _webform_display_wic_nss_goal($component, $value, $format = 'html') {
  *   a numerically keyed array.
  */
 function _webform_submit_wic_nss_goal($component, $value) {
+  global $user;
+
   // Convert the date to an ISO 8601 format.
   $value['due_date'] = ($value['due_date']['year'] && $value['due_date']['month'] && $value['due_date']['day']) ? webform_date_string($value['due_date'], 'date') : '';
+
+  // Delete any existing goal from this submission.
+  db_delete('wic_nss_goal')
+    ->condition('uid', $user->uid)
+    ->condition('nid', $component['nid'])
+    ->condition('cid', $component['cid'])
+    ->execute();
+
+  // Insert the goal into {wic_nss_goal} if a goal and due date have been
+  // entered, but the goal hasn't been completed.
+  if ($value['goal'] && $value['due_date'] && empty($value['goal_complete'])) {
+    $timestamp = strtotime($value['due_date']);
+    db_insert('wic_nss_goal')
+      ->fields(array(
+        'uid' => $user->uid,
+        'nid' => $component['nid'],
+        'cid' => $component['cid'],
+        'goal' => $value['goal'],
+        'resources' => $value['resources'],
+        'due_date' => $timestamp,
+      ))
+      ->execute();
+  }
+
   return $value;
 }

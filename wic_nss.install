@@ -21,3 +21,52 @@ function wic_nss_uninstall() {
   // Delete the module's variables.
   variable_del('wic_nss_assessment_nids');
 }
+
+function wic_nss_schema() {
+  $schema = array();
+
+  $schema['wic_nss_goal'] = array(
+    'description' => 'Stores information about goals submitted on webforms.',
+    'fields' => array(
+      'uid' => array(
+        'description' => 'The users.uid of the person who submitted the webform.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'nid' => array(
+        'description' => 'The node.nid of the webform node.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'cid' => array(
+        'description' => 'The webform_component.cid of the webform component.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'goal' => array(
+        'description' => 'The text entered into the webform goal field.',
+        'type' => 'text',
+        'not null' => TRUE,
+      ),
+      'resources' => array(
+        'description' => 'The text entered into the webform resources field.',
+        'type' => 'text',
+        'not null' => TRUE,
+      ),
+      'due_date' => array(
+        'description' => 'The UNIX timestamp entered into the webform due_date field.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'indexes' => array(
+      'webform_submit_wic_nss_goal' => array('uid', 'nid', 'cid'),
+    ),
+  );
+
+  return $schema;
+}
