@@ -22,6 +22,9 @@ function wic_nss_uninstall() {
   variable_del('wic_nss_assessment_nids');
 }
 
+/**
+ * Implements hook_schema().
+ */
 function wic_nss_schema() {
   $schema = array();
 
