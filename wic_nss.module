@@ -472,12 +472,21 @@ function _wic_nss_get_flat_book_nodes($tree) {
   return $nids;
 }
 
+/**
+ * Returns HTML for empty assessment reports.
+ */
 function theme_wic_nss_empty_report($variables) {
   $bid = $variables['bid'];
   return '<p>' . t("You haven't submitted any forms for this self-assessment yet.") . '</p>
     <p>' . l(t('Start filling out forms.'), 'node/' . $bid) . '</p>';
 }
 
+/**
+ * Implements hook_webform_component_info().
+ *
+ * @return array
+ *   An array containing webform component definitions.
+ */
 function wic_nss_webform_component_info() {
   return array(
     'wic_nss_goal' => array(
@@ -502,4 +511,109 @@ function wic_nss_webform_component_info() {
       'file' => 'wic_nss.component.inc',
     ),
   );
+}
+
+/**
+ * Implements hook_webform_submission_insert().
+ *
+ * Respond to a Webform submission being inserted.
+ *
+ * @param $node
+ *   The Webform node on which this submission was made.
+ * @param $submission
+ *   The Webform submission that was just inserted into the database.
+ */
+function wic_nss_webform_submission_insert($node, $submission) {
+  wic_nss_insert_goal($node, $submission);
+}
+
+/**
+ * Implements hook_webform_submission_update().
+ *
+ * Respond to a Webform submission being updated.
+ *
+ * @param $node
+ *   The Webform node on which this submission was made.
+ * @param $submission
+ *   The Webform submission that was just updated in the database.
+ */
+function wic_nss_webform_submission_update($node, $submission) {
+  wic_nss_insert_goal($node, $submission);
+}
+
+/**
+ * Inserts new goals into {wic_nss_goal} and deletes all old goals.
+ *
+ * @param $node
+ *   The Webform node on which this submission was made.
+ * @param $submission
+ *   The Webform submission that was just inserted/updated in the database.
+ */
+function wic_nss_insert_goal($node, $submission) {
+  $cids = _wic_nss_get_node_goal_components($node->nid);
+  if (empty($cids)) {
+    return;
+  }
+  global $user;
+
+  // Delete any existing goal from this node.
+  db_delete('wic_nss_goal')
+    ->condition('uid', $user->uid)
+    ->condition('nid', $node->nid)
+    ->execute();
+
+  foreach ($cids as $cid) {
+    // Insert the goal into {wic_nss_goal} if a goal and due date have been
+    // entered, but the goal hasn't been completed.
+    $value = $submission->data[$cid]['value'];
+    if ($value['goal'] && $value['due_date'] && empty($value['goal_complete'])) {
+      $timestamp = strtotime($value['due_date']);
+      db_insert('wic_nss_goal')
+        ->fields(array(
+          'uid' => $user->uid,
+          'nid' => $node->nid,
+          'cid' => $cid,
+          'goal' => $value['goal'],
+          'resources' => $value['resources'],
+          'due_date' => $timestamp,
+        ))
+        ->execute();
+    }
+  }
+}
+
+/**
+ * Returns an array of wic_nss_goal component IDs in the node's webform.
+ *
+ * @param int $nid
+ *   A webform node ID.
+ *
+ * @return array
+ *   An array of wic_nss_goal component IDs.
+ */
+function _wic_nss_get_node_goal_components($nid) {
+  return db_query("SELECT cid FROM {webform_component} WHERE nid = :nid AND type = 'wic_nss_goal'", array(':nid' => $nid))->fetchCol();
+}
+
+/**
+ * Implements hook_webform_submission_delete().
+ *
+ * Respond to a Webform submission being deleted.
+ *
+ * @param $node
+ *   The Webform node on which this submission was made.
+ * @param $submission
+ *   The Webform submission that was just deleted from the database.
+ */
+function wic_nss_webform_submission_delete($node, $submission) {
+
+}
+
+/**
+ * Implements hook_webform_component_delete().
+ *
+ * Respond to a Webform component being deleted.
+ */
+function wic_nss_webform_component_delete($component) {
+
 }
