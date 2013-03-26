@@ -74,6 +74,8 @@ function wic_nss_schema() {
     ),
     'indexes' => array(
       'wic_nss_insert_goal' => array('uid', 'nid'),
+      'wic_nss_webform_submission_delete' => array('nid', 'sid'),
+      'wic_nss_webform_component_delete' => array('nid', 'cid'),
     ),
   );
 
