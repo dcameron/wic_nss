@@ -573,6 +573,7 @@ function wic_nss_insert_goal($node, $submission) {
           'uid' => $user->uid,
           'nid' => $node->nid,
           'cid' => $cid,
+          'sid' => $submission->sid,
           'goal' => $value['goal'],
           'resources' => $value['resources'],
           'due_date' => $timestamp,
