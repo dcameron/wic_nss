@@ -1,4 +1,6 @@
-
+.content .menu {
+  margin-bottom: 1em;
+}
 .wic-nss-complete {
   color: green;
 }
