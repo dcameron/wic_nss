@@ -58,6 +58,7 @@ function wic_nss_dashboard_page($bid = FALSE) {
       '#theme' => 'wic_nss_assessment_menu',
       '#elements' => menu_tree_output($tree),
     );
+
     // Print a link to the assessment's print pages.
     $links = array(
       'assessment_print_page_' . $nid => array(
@@ -76,6 +77,28 @@ function wic_nss_dashboard_page($bid = FALSE) {
         'text' => t('Self-assessment report'),
         'level' => 'h3',
       ),
+    );
+
+    // Print the table of goals.
+    $nids = _wic_nss_get_flat_book_nodes($tree);
+    $goals = _wic_nss_get_user_goals($nids);
+    $header = array(t('Form'), t('Goal'), t('Due date'));
+    $rows = array();
+    foreach ($goals as $goal) {
+      $goal_node = node_load($goal->nid);
+      $rows[] = array(
+        'node_title' => l($goal_node->title, 'node/' . $goal->nid),
+        'goal' => $goal->goal,
+        'due_date' => date('F d, Y', $goal->due_date),
+      );
+    }
+    $page['goals_heading'] = array(
+      '#markup' => '<h3>' . t("Improvement goals you've set") . '</h3>',
+    );
+    $page['goals'] = array(
+      '#theme' => 'table',
+      '#header' => $header,
+      '#rows' => $rows,
     );
   }
   return $page;

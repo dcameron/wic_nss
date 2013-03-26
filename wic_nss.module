@@ -626,3 +626,18 @@ function wic_nss_webform_component_delete($component) {
     ->condition('cid', $component['cid'])
     ->execute();
 }
+
+/**
+ * Returns all of the current user's goals with the given node IDs.
+ *
+ * @param array $nids
+ *   An array of node IDs.
+ *
+ * @return array
+ *   An array of objects containing information about the user's goals.
+ */
+function _wic_nss_get_user_goals($nids) {
+  global $user;
+  return db_query("SELECT nid, sid, goal, resources, due_date FROM {wic_nss_goal} WHERE nid IN (:nids) AND uid = :uid ORDER BY due_date ASC", array(':nids' => $nids, ':uid' => $user->uid))
+    ->fetchAll();
+}
