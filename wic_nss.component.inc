@@ -71,6 +71,22 @@ function _webform_render_wic_nss_goal($component, $value = NULL, $filter = TRUE)
   $form_item['due_date'] = array(
     '#type' => 'date',
     '#title' => t('Set a due date for this goal.'),
+    '#start_date' => 'today',
+    '#end_date' => '+5 years',
+    '#year_textfield' => FALSE,
+    '#timezone' => 'user',
+    '#process' => array('webform_expand_date'),
+    '#theme' => 'webform_date',
+    '#element_validate' => array('webform_validate_date'),
+    '#datepicker' => TRUE,
+    '#attached' => array(
+      'library' => array(
+        array('system', 'ui.datepicker'),
+      ),
+    ),
+    '#webform_component' => array(
+      'type' => 'date',
+    ),
   );
   $form_item['goal_complete'] = array(
     '#type' => 'checkbox',
