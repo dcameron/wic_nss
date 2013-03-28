@@ -105,6 +105,11 @@ function wic_nss_dashboard_page($bid = FALSE) {
         '#theme' => 'table',
         '#header' => $header,
         '#rows' => $rows,
+        '#attributes' => array(
+          'class' => array(
+            'wic-nss-goals-table',
+          ),
+        ),
       );
     }
   }

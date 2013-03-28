@@ -1,16 +1,30 @@
+/* Dashboard page styles */
 .content .menu {
   margin-bottom: 1em;
 }
+.wic-nss-goals-table td {
+  vertical-align: top;
+}
+.wic-nss-goals-table th:first-child,
+.wic-nss-goals-table th:last-child {
+  width: 17%;
+}
+
+/* Assessment navigation menu styles */
 .wic-nss-complete {
   color: green;
 }
 .wic-nss-incomplete {
   color: red;
 }
+
+/* Webform node styles */
 .webform-component-radios .form-type-radio {
   display: inline;
   margin-left: 5px;
 }
+
+/* Report styles */
 .wic-nss-node-display,
 .wic-nss-submissions-toc {
   border-bottom: 2px solid #97BE49;
