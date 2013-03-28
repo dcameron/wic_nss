@@ -514,6 +514,22 @@ function wic_nss_webform_component_info() {
 }
 
 /**
+ * Implements hook_webform_submission_presave().
+ *
+ * Modify a Webform submission, prior to saving it in the database.
+ *
+ * @param $node
+ *   The Webform node on which this submission was made.
+ * @param $submission
+ *   The Webform submission that is about to be saved to the database.
+ */
+function wic_nss_webform_submission_presave($node, &$submission) {
+  // Make the submitted time equal to the current time so that the nav menus
+  // display the time the submission was last updated.
+  $submission->submitted = REQUEST_TIME;
+}
+
+/**
  * Implements hook_webform_submission_insert().
  *
  * Respond to a Webform submission being inserted.
@@ -539,6 +555,7 @@ function wic_nss_webform_submission_insert($node, $submission) {
  */
 function wic_nss_webform_submission_update($node, $submission) {
   wic_nss_insert_goal($node, $submission);
+
 }
 
 /**
