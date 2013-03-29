@@ -5,7 +5,7 @@ version = 7.x-1.x
 package = WIC NSS
 
 dependencies[] = book
-dependencies[] = field_collection
+dependencies[] = field_group
 dependencies[] = libraries
 dependencies[] = webform
 
