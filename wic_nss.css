@@ -2,6 +2,11 @@
 .content .menu {
   margin-bottom: 1em;
 }
+.expansion-target {
+  color: #AAAAAA;
+  cursor: pointer;
+  font-size: 80%;
+}
 .wic-nss-goals-table td {
   vertical-align: top;
 }

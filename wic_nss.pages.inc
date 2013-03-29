@@ -43,6 +43,7 @@ function wic_nss_dashboard_page($bid = FALSE) {
   if (empty($bids)) {
     return '<p>' . t("We're sorry, there are no self-assessments set up yet.  Please contact an administrator.") . '</p>';
   }
+  drupal_add_js(drupal_get_path('module', 'wic_nss') . '/wic_nss.dashboard.js');
   $page = '';
   $nodes = node_load_multiple($bids);
 
