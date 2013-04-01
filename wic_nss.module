@@ -6,7 +6,7 @@
  */
 
 /**
- * Implments hook_menu().
+ * Implements hook_menu().
  */
 function wic_nss_menu() {
   return array(
