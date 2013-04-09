@@ -71,6 +71,12 @@ function wic_nss_schema() {
         'not null' => TRUE,
         'default' => 0,
       ),
+      'send_reminder' => array(
+        'description' => 'Whether the module should send a reminder notice 30 days prior to the due date: 0 = no, 1 = yes.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
     ),
     'indexes' => array(
       'wic_nss_insert_goal' => array('uid', 'nid'),

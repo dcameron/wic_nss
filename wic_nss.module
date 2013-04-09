@@ -585,6 +585,7 @@ function wic_nss_insert_goal($node, $submission) {
     $value = $submission->data[$cid]['value'];
     if ($value['goal'] && $value['due_date'] && empty($value['goal_complete'])) {
       $timestamp = strtotime($value['due_date']);
+      $reminder = REQUEST_TIME < ($timestamp - 2505600);
       db_insert('wic_nss_goal')
         ->fields(array(
           'uid' => $user->uid,
@@ -594,6 +595,7 @@ function wic_nss_insert_goal($node, $submission) {
           'goal' => $value['goal'],
           'resources' => $value['resources'],
           'due_date' => $timestamp,
+          'send_reminder' => (int) $reminder,
         ))
         ->execute();
     }
