@@ -795,12 +795,14 @@ function wic_nss_mail($key, &$message, $params) {
   $langcode = $message['language']->language;
   switch($key) {
     case 'goal_reminder':
-      $message['subject'] = t('You have upcoming due dates for improvement goals.', array(), array('langcode' => $langcode));
+      $message_subject = variable_get('wic_nss_goal_reminder_subject', "You have upcoming due dates for improvement goals.");
+      $message['subject'] = t('!message_subject', array('!message_subject' => $message_subject), array('langcode' => $langcode));
       $message_body = variable_get('wic_nss_goal_reminder_body', "This is a reminder email about the following goals you set for self-improvement of your WIC clinic or agency.");
       $message['body'][] = t('!message_body', array('!message_body' => $message_body), array('langcode' => $langcode));
       break;
     case '90_day_notice':
-      $message['subject'] = t('A reminder from the WIC NSS website.', array(), array('langcode' => $langcode));
+      $message_subject = variable_get('wic_nss_90_day_notice_subject', "A reminder from the WIC NSS website.");
+      $message['subject'] = t('!message_subject', array('!message_subject' => $message_subject), array('langcode' => $langcode));
       $message_body = variable_get('wic_nss_90_day_notice_body', "This is a reminder email about the following goals you set for self-improvement of your WIC clinic or agency.");
       $message['body'][] = t('!message_body', array('!message_body' => $message_body), array('langcode' => $langcode));
       break;
