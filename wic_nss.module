@@ -742,12 +742,18 @@ function wic_nss_mail($key, &$message, $params) {
     case 'goal_reminder':
       $message['subject'] = t('You have upcoming due dates for improvement goals.', array(), array('langcode' => $langcode));
       $message_body = variable_get('wic_nss_goal_reminder_body', "This is a reminder email about the following goals you set for self-improvement of your WIC clinic or agency.");
-      $message['body'][] = t(':message_body', array(':message_body' => $message_body), array('langcode' => $langcode));
+      $message['body'][] = t('!message_body', array('!message_body' => $message_body), array('langcode' => $langcode));
       foreach ($params as $goal) {
         $node = $goal['node'];
-        $message['body'][] = t('Form: :form', array(':form' => l('node/' . $node->nid, $node->title)), array('langcode' => $langcode)) . "\n" .
-          t('Due date: :due_date', array(':due_date' => $goal['due_date']), array('langcode' => $langcode)) . "\n" .
-          t('Goal: :goal', array(':goal' => $goal['goal']), array('langcode' => $langcode));
+        $variables = array(
+          '!form' => $node->title,
+          '!form_url' => url('node/' . $node->nid, array('absolute' => TRUE, 'language' => $language)),
+          '!due_date' => $goal['due_date'],
+          '!goal' => $goal['goal'],
+        );
+        $message['body'][] = t('Form: !form !form_url', $variables, array('langcode' => $langcode)) . "\n" .
+          t('Due date: !due_date', $variables, array('langcode' => $langcode)) . "\n" .
+          t('Goal: !goal', $variables, array('langcode' => $langcode));
       }
       break;
   }
