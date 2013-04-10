@@ -660,3 +660,95 @@ function _wic_nss_get_user_goals($nids) {
   return db_query("SELECT nid, sid, goal, resources, due_date FROM {wic_nss_goal} WHERE nid IN (:nids) AND uid = :uid ORDER BY due_date ASC", array(':nids' => $nids, ':uid' => $user->uid))
     ->fetchAll();
 }
+
+/**
+ * Implements hook_cron().
+ */
+function wic_nss_cron() {
+  // Query for any goals with due dates that are less than 30 days away.
+  $results = db_query("SELECT uid, nid, goal, due_date FROM {wic_nss_goal} WHERE due_date < :reminder_time && send_reminder = 1", array(':reminder_time' => REQUEST_TIME + 2592000));
+
+  // Initialize the array of user goals, keyed by uid.
+  $users = array();
+  foreach ($results as $result) {
+    $node = node_load($result->nid);
+    $users[$result->uid][] = array(
+      'node' => $node,
+      'goal' => $result->goal,
+      'due_date' => $result->due_date,
+    );
+  }
+
+  // Send reminder emails to the users about upcoming goals.
+  $queue = DrupalQueue::get('wic_nss_mail');
+  foreach ($users as $uid => $goals) {
+    $account = user_load($uid);
+    $mail = array(
+      'module' => 'wic_nss',
+      'key' => 'goal_reminder',
+      'to' => $account->mail,
+      'language' => user_preferred_language($account),
+      'params' => $goals,
+      'from' => 'wicworks@ars.usda.gov',
+    );
+    $queue->createItem($mail);
+  }
+
+  // Update the goal send_reminder flags.
+  db_update('wic_nss_goal')
+    ->fields(array(
+      'send_reminder' => 0,
+    ))
+    ->condition('due_date', REQUEST_TIME + 2592000, '<')
+    ->condition('send_reminder', 1)
+    ->execute();
+}
+
+/**
+ * Implements hook_cron_queue_info().
+ */
+function wic_nss_cron_queue_info() {
+  return array(
+    'wic_nss_mail' => array(
+      'worker callback' => '_wic_nss_mail',
+      'time' => 15,
+    ),
+  );
+}
+
+/**
+ * Wraps drupal_mail().
+ *
+ * hook_cron_queue_info() can only pass a single argument to worker callback
+ * functions.  Since drupal_mail() has several arguments, pass them through the
+ * Queue API as a single array to this function.
+ *
+ * @param array $message
+ *   An array of arguments to be passed to drupal_mail().
+ *
+ * @see wic_nss_cron_queue_info()
+ * @see drupal_mail()
+ */
+function _wic_nss_mail($mail) {
+  return drupal_mail($mail['module'], $mail['key'], $mail['to'], $mail['language'], $mail['params'], $mail['from']);
+}
+
+/**
+ * Implements hook_mail().
+ */
+function wic_nss_mail($key, &$message, $params) {
+  $langcode = $message['language']->language;
+  switch($key) {
+    case 'goal_reminder':
+      $message['subject'] = t('You have upcoming due dates for improvement goals.', array(), array('langcode' => $langcode));
+      $message_body = variable_get('wic_nss_goal_reminder_body', "This is a reminder email about the following goals you set for self-improvement of your WIC clinic or agency.");
+      $message['body'][] = t(':message_body', array(':message_body' => $message_body), array('langcode' => $langcode));
+      foreach ($params as $goal) {
+        $node = $goal['node'];
+        $message['body'][] = t('Form: :form', array(':form' => l('node/' . $node->nid, $node->title)), array('langcode' => $langcode)) . "\n" .
+          t('Due date: :due_date', array(':due_date' => $goal['due_date']), array('langcode' => $langcode)) . "\n" .
+          t('Goal: :goal', array(':goal' => $goal['goal']), array('langcode' => $langcode));
+      }
+      break;
+  }
+}

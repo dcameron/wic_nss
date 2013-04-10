@@ -15,6 +15,13 @@ function wic_nss_admin_page() {
     '#default_value' => variable_get('wic_nss_user_register_form_instructions', ''),
     '#required' => FALSE,
   );
+  $form['wic_nss_goal_reminder_body'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Message body for goal reminder emails.'),
+    '#description' => t('Text entered here will appear in the body of goal reminder emails above the list of upcoming goals.'),
+    '#default_value' => variable_get('wic_nss_goal_reminder_body', ''),
+    '#required' => FALSE,
+  );
   return system_settings_form($form);
 }
 
