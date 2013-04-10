@@ -18,8 +18,15 @@ function wic_nss_admin_page() {
   $form['wic_nss_goal_reminder_body'] = array(
     '#type' => 'textarea',
     '#title' => t('Message body for goal reminder emails.'),
-    '#description' => t('Text entered here will appear in the body of goal reminder emails above the list of upcoming goals.'),
+    '#description' => t('Text entered here will appear above the list of upcoming goals.'),
     '#default_value' => variable_get('wic_nss_goal_reminder_body', ''),
+    '#required' => FALSE,
+  );
+  $form['wic_nss_90_day_notice_body'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Message body for emails sent to users with no activity for 90 days.'),
+    '#description' => t('Text entered here will appear above the list of upcoming goals.'),
+    '#default_value' => variable_get('wic_nss_90_day_notice_body', ''),
     '#required' => FALSE,
   );
   return system_settings_form($form);

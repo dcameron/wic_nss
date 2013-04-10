@@ -665,34 +665,14 @@ function _wic_nss_get_user_goals($nids) {
  * Implements hook_cron().
  */
 function wic_nss_cron() {
-  // Query for any goals with due dates that are less than 30 days away.
-  $results = db_query("SELECT uid, nid, goal, due_date FROM {wic_nss_goal} WHERE due_date < :reminder_time && send_reminder = 1", array(':reminder_time' => REQUEST_TIME + 2592000));
-
-  // Initialize the array of user goals, keyed by uid.
-  $users = array();
-  foreach ($results as $result) {
-    $node = node_load($result->nid);
-    $users[$result->uid][] = array(
-      'node' => $node,
-      'goal' => $result->goal,
-      'due_date' => $result->due_date,
-    );
-  }
-
-  // Send reminder emails to the users about upcoming goals.
   $queue = DrupalQueue::get('wic_nss_mail');
-  foreach ($users as $uid => $goals) {
-    $account = user_load($uid);
-    $mail = array(
-      'module' => 'wic_nss',
-      'key' => 'goal_reminder',
-      'to' => $account->mail,
-      'language' => user_preferred_language($account),
-      'params' => $goals,
-      'from' => 'wicworks@ars.usda.gov',
-    );
-    $queue->createItem($mail);
-  }
+
+  // Query for any goals with due dates that are less than 30 days away.
+  $results = db_query("SELECT uid, nid, goal, due_date FROM {wic_nss_goal} WHERE due_date < :reminder_time && send_reminder = 1", array(':reminder_time' => REQUEST_TIME + 2592000))
+    ->fetchAll();
+
+  // Process the goals and send reminder emails.
+  _wic_nss_cron_send_mail($queue, $results, 'goal_reminder');
 
   // Update the goal send_reminder flags.
   db_update('wic_nss_goal')
@@ -702,6 +682,81 @@ function wic_nss_cron() {
     ->condition('due_date', REQUEST_TIME + 2592000, '<')
     ->condition('send_reminder', 1)
     ->execute();
+
+  // Get the array of users who have already received inactivity emails.
+  $inactive_users = variable_get('wic_nss_inactive_users', array());
+
+  // Query for any users that haven't accessed the site in over 90 days and have
+  // set goals with due dates before or during the next month.
+  $query = db_select('users', 'u');
+  $query->join('wic_nss_goal', 'g', 'u.uid = g.uid');
+  $query->fields('u', array('uid'))
+    ->fields('g', array('nid', 'goal', 'due_date'))
+    ->condition('u.access', 0, '<>')
+    ->condition('u.access', REQUEST_TIME - 7776000, '<')
+    ->condition('g.due_date', REQUEST_TIME + 2592000, '<');
+  // Filter any users who have already received inactivity emails.
+  if (!empty($inactive_users)) {
+    $query->condition('u.uid', $inactive_users, 'NOT IN');
+  }
+  $results = $query->execute()->fetchAll();
+
+  // Process the goals and send reminder emails.
+  _wic_nss_cron_send_mail($queue, $results, '90_day_notice');
+
+  // Update the list of inactive users who have received emails.
+  foreach ($results as $result) {
+    if (!in_array($result->uid, $inactive_users)) {
+      $inactive_users[] = $result->uid;
+    }
+  }
+  variable_set('wic_nss_inactive_users', $inactive_users);
+}
+
+
+/**
+ * Processes user goals from the database and sends emails to the users.
+ *
+ * @param Object $queue
+ *   A DrupalQueue object defined in wic_nss_cron_queue_info().
+ * @param array $goals
+ *   An array of objects with the following properties:
+ *   - uid: The uid of the goal's owner.
+ *   - node: The node object of the goal's webform.
+ *   - goal: A string containing the goal text.
+ *   - due_date: The UNIX timestamp of the goal's due date.
+ * @param string $key
+ *   The $key parameter for the drupal_mail() function.
+ *
+ * @see wic_nss_cron()
+ * @see wic_nss_cron_queue_info()
+ * @see drupal_mail()
+ */
+function _wic_nss_cron_send_mail(&$queue, $goals, $key) {
+  // Initialize the array of user goals, keyed by uid.
+  $users = array();
+  foreach ($goals as $goal) {
+    $node = node_load($goal->nid);
+    $users[$goal->uid][] = array(
+      'node' => $node,
+      'goal' => $goal->goal,
+      'due_date' => $goal->due_date,
+    );
+  }
+
+  // Send reminder emails to the users about upcoming goals.
+  foreach ($users as $uid => $user_goals) {
+    $account = user_load($uid);
+    $mail = array(
+      'module' => 'wic_nss',
+      'key' => $key,
+      'to' => $account->mail,
+      'language' => user_preferred_language($account),
+      'params' => $user_goals,
+      'from' => 'wicworks@ars.usda.gov',
+    );
+    $queue->createItem($mail);
+  }
 }
 
 /**
@@ -743,18 +798,38 @@ function wic_nss_mail($key, &$message, $params) {
       $message['subject'] = t('You have upcoming due dates for improvement goals.', array(), array('langcode' => $langcode));
       $message_body = variable_get('wic_nss_goal_reminder_body', "This is a reminder email about the following goals you set for self-improvement of your WIC clinic or agency.");
       $message['body'][] = t('!message_body', array('!message_body' => $message_body), array('langcode' => $langcode));
-      foreach ($params as $goal) {
-        $node = $goal['node'];
-        $variables = array(
-          '!form' => $node->title,
-          '!form_url' => url('node/' . $node->nid, array('absolute' => TRUE, 'language' => $message['language'])),
-          '!due_date' => date('F d, Y', $goal['due_date']),
-          '!goal' => $goal['goal'],
-        );
-        $message['body'][] = t('Form: !form (!form_url)', $variables, array('langcode' => $langcode)) . "\n" .
-          t('Due date: !due_date', $variables, array('langcode' => $langcode)) . "\n" .
-          t('Goal: !goal', $variables, array('langcode' => $langcode));
-      }
       break;
+    case '90_day_notice':
+      $message['subject'] = t('A reminder from the WIC NSS website.', array(), array('langcode' => $langcode));
+      $message_body = variable_get('wic_nss_90_day_notice_body', "This is a reminder email about the following goals you set for self-improvement of your WIC clinic or agency.");
+      $message['body'][] = t('!message_body', array('!message_body' => $message_body), array('langcode' => $langcode));
+      break;
+  }
+
+  // Add the list of the user's goals.
+  foreach ($params as $goal) {
+    $node = $goal['node'];
+    $variables = array(
+      '!form' => $node->title,
+      '!form_url' => url('node/' . $node->nid, array('absolute' => TRUE, 'language' => $message['language'])),
+      '!due_date' => date('F d, Y', $goal['due_date']),
+      '!goal' => $goal['goal'],
+    );
+    $message['body'][] = t('Form: !form (!form_url)', $variables, array('langcode' => $langcode)) . "\n" .
+      t('Due date: !due_date', $variables, array('langcode' => $langcode)) . "\n" .
+      t('Goal: !goal', $variables, array('langcode' => $langcode));
+  }
+}
+
+/**
+ * Implements hook_user_login().
+ */
+function wic_nss_user_login(&$edit, $account) {
+  $inactive_users = variable_get('wic_nss_inactive_users', array());
+  $key = array_search($account->uid, $inactive_users);
+  if ($key !== FALSE) {
+    // Remove the user from the list of inactive users.
+    unset($inactive_users[$key]);
+    variable_set('wic_nss_inactive_users', $inactive_users);
   }
 }
