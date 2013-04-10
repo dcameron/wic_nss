@@ -747,11 +747,11 @@ function wic_nss_mail($key, &$message, $params) {
         $node = $goal['node'];
         $variables = array(
           '!form' => $node->title,
-          '!form_url' => url('node/' . $node->nid, array('absolute' => TRUE, 'language' => $language)),
-          '!due_date' => $goal['due_date'],
+          '!form_url' => url('node/' . $node->nid, array('absolute' => TRUE, 'language' => $message['language'])),
+          '!due_date' => date('F d, Y', $goal['due_date']),
           '!goal' => $goal['goal'],
         );
-        $message['body'][] = t('Form: !form !form_url', $variables, array('langcode' => $langcode)) . "\n" .
+        $message['body'][] = t('Form: !form (!form_url)', $variables, array('langcode' => $langcode)) . "\n" .
           t('Due date: !due_date', $variables, array('langcode' => $langcode)) . "\n" .
           t('Goal: !goal', $variables, array('langcode' => $langcode));
       }
