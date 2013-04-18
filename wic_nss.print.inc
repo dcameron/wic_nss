@@ -131,11 +131,11 @@ function _wic_nss_pdf_cover_page(&$pdf, $wic_agency) {
         font-size: 15pt;
       }
     </style>
-    <span class="title">Self-Assessment</span><br />';
+    <span class="title">' . t('Self-Assessment') . '</span><br />';
   if (!empty($wic_agency)) {
-    $html .= '<span class="wic-agency">Agency: ' . $wic_agency . '</span><br />';
+    $html .= '<span class="wic-agency">' . t('Agency: @agency', array('@agency' => $wic_agency)) . '</span><br />';
   }
-  $html .= '<span class="created">Created: ' . date('F d, Y') . '</span>';
+  $html .= '<span class="created">' . t('Created: @created', array('@created' => date('F d, Y'))) . '</span>';
   $pdf->SetTopMargin(175);
   $pdf->SetLeftMargin(100);
   $pdf->writeHTML($html, TRUE, FALSE, TRUE, FALSE, '');
