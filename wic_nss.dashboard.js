@@ -9,17 +9,17 @@
     $('div.assessment-menu li li.expanded').each(function() {
       $(this).removeClass('expanded');
       $(this).addClass('collapsed');
-      $(this).find('a:first').after(' <span class="expansion-target">(show sub-forms)</span>');
+      $(this).find('a:first').after(' <span class="expansion-target">(click here to show sub-forms)</span>');
       $(this).find('ul.menu').hide();
     });
     $('span.expansion-target').click(function() {
       if ($(this).parent().hasClass('collapsed')) {
-        $(this).html('(hide sub-forms)');
+        $(this).html('(click here to hide sub-forms)');
         $(this).parent().removeClass('collapsed');
         $(this).parent().addClass('expanded');
       }
       else if ($(this).parent().hasClass('expanded')) {
-        $(this).html('(show sub-forms)');
+        $(this).html('(click here to show sub-forms)');
         $(this).parent().removeClass('expanded');
         $(this).parent().addClass('collapsed');
       }
