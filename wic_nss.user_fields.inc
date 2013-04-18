@@ -5,9 +5,9 @@
  */
 
 /**
- * Adds fields to user entities.
+ * Add the user_wic_agency field to user entities.
  */
-function _wic_nss_create_user_fields() {
+function _wic_nss_create_user_wic_agency_field() {
   // Add the WIC agency field.
   $field = array(
     'active' => 1,
@@ -75,9 +75,9 @@ function _wic_nss_create_user_fields() {
 }
 
 /**
- * Uninstall the WIC publication node type.
+ * Deletes the user_wic_agency field from user entities.
  */
-function _wic_nss_delete_user_fields() {
+function _wic_nss_delete_user_wic_agency_field() {
   $fields = array(
     'user_wic_agency',
   );

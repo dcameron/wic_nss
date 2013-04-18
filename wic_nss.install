@@ -13,9 +13,9 @@ function wic_nss_install() {
   // are stored in it.  There is no need to create a whole table just for them.
   variable_set('wic_nss_assessment_nids', array());
 
-  // Load the code to define the WIC publication node type and invoke it.
+  // Load the code to create the user_wic_agency field and invoke it.
   require_once dirname(__FILE__) . '/wic_nss.user_fields.inc';
-  _wic_nss_create_user_fields();
+  _wic_nss_create_user_wic_agency_field();
 }
 
 /**
@@ -23,7 +23,7 @@ function wic_nss_install() {
  */
 function wic_nss_uninstall() {
   require_once dirname(__FILE__) . '/wic_nss.user_fields.inc';
-  _wic_nss_delete_user_fields();
+  _wic_nss_delete_user_wic_agency_field();
 
   // Delete the module's variables.
   variable_del('wic_nss_assessment_nids');
@@ -93,4 +93,13 @@ function wic_nss_schema() {
   );
 
   return $schema;
+}
+
+/**
+ * Install the user_wic_agency field.
+ */
+function wic_nss_update_7100() {
+  // Load the code to create the user_wic_agency field and invoke it.
+  require_once dirname(__FILE__) . '/wic_nss.user_fields.inc';
+  _wic_nss_create_user_wic_agency_field();
 }
