@@ -28,12 +28,15 @@ function wic_nss_assessment_print_pdf_page($bid) {
 
   // Initialize the PDF object.
   global $user;
+  $account = user_load($user->uid);
   $book = node_load($bid);
   $creator = variable_get('site_name', 'Drupal');
   $author = $user->name;
+  $items = field_get_items('user', $account, 'user_wic_agency');
+  $value = field_view_value('user', $account, 'user_wic_agency', $items[0]);
+  $wic_agency = $value['#markup'];
   $title = $book->title;
   $pdf = _wic_nss_init_tcpdf($creator, $author, $title);
-
   // Replace the HTML in the submissions with TCPDF-compatible elements.
   foreach ($pages as $nid => $page) {
     if (!empty($page['submission'])) {
@@ -42,7 +45,7 @@ function wic_nss_assessment_print_pdf_page($bid) {
   }
 
   // Print the cover page.
-  _wic_nss_pdf_cover_page($pdf);
+  _wic_nss_pdf_cover_page($pdf, $wic_agency);
 
   // Print the header and footer on all content pages.
   $pdf->setPrintHeader(TRUE);
@@ -105,7 +108,7 @@ function _wic_nss_init_tcpdf($creator, $author, $title) {
  * @param WICNSS object $pdf
  *   A fully-loaded PDF object.
  */
-function _wic_nss_pdf_cover_page(&$pdf) {
+function _wic_nss_pdf_cover_page(&$pdf, $wic_agency) {
   // Don't print the header or footer.
   $pdf->setPrintHeader(FALSE);
   $pdf->setPrintFooter(FALSE);
@@ -119,13 +122,20 @@ function _wic_nss_pdf_cover_page(&$pdf) {
         color: #FFFFFF;
         font-size: 35pt;
       }
+      span.wic-agency {
+        color: #FFFFFF;
+        font-size: 15pt;
+      }
       span.created {
         color: #FFFFFF;
         font-size: 15pt;
       }
     </style>
-    <span class="title">Self-Assessment</span><br />
-    <span class="created">Created: ' . date('F d, Y') . '</span>';
+    <span class="title">Self-Assessment</span><br />';
+  if (!empty($wic_agency)) {
+    $html .= '<span class="wic-agency">Agency: ' . $wic_agency . '</span><br />';
+  }
+  $html .= '<span class="created">Created: ' . date('F d, Y') . '</span>';
   $pdf->SetTopMargin(175);
   $pdf->SetLeftMargin(100);
   $pdf->writeHTML($html, TRUE, FALSE, TRUE, FALSE, '');
