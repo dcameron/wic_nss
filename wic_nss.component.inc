@@ -16,6 +16,8 @@ function _webform_defaults_wic_nss_goal() {
       'description' => '',
       'title_display' => TRUE,
       'private' => FALSE,
+      'goals_textarea_label' => t('What are your agency’s goals/plans for improvement?'),
+      'resources_textarea_label' => t('What resources/technical assistance does your agency need to reach this goal?'),
     ),
   );
 }
@@ -30,7 +32,18 @@ function _webform_defaults_wic_nss_goal() {
  *   An array of form items to be displayed on the edit component page.
  */
 function _webform_edit_wic_nss_goal($component) {
-  $form = array();
+  $form['display']['goals_textarea_label'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Label for the first text area element.'),
+    '#default_value' => $component['extra']['goals_textarea_label'],
+    '#parents' => array('extra', 'goals_textarea_label'),
+  );
+  $form['display']['resources_textarea_label'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Label for the second text area element.'),
+    '#default_value' => $component['extra']['resources_textarea_label'],
+    '#parents' => array('extra', 'resources_textarea_label'),
+  );
 
   return $form;
 }
@@ -62,11 +75,11 @@ function _webform_render_wic_nss_goal($component, $value = NULL, $filter = TRUE)
   );
   $form_item['goal'] = array(
     '#type' => 'textarea',
-    '#title' => t('What are your agency’s goals/plans for improvement?'),
+    '#title' => $filter ? _webform_filter_xss($component['extra']['goals_textarea_label']) : $component['extra']['goals_textarea_label'],
   );
   $form_item['resources'] = array(
     '#type' => 'textarea',
-    '#title' => t('What resources/technical assistance does your agency need to reach your improvement goals/pans?'),
+    '#title' => $filter ? _webform_filter_xss($component['extra']['resources_textarea_label']) : $component['extra']['resources_textarea_label'],
   );
   $form_item['due_date'] = array(
     '#type' => 'date',
