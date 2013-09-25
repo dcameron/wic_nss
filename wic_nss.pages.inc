@@ -141,7 +141,7 @@ function wic_nss_assessment_view_page($bid) {
       '#theme' => 'wic_nss_empty_report',
       '#bid' => $bid,
     );
-    return drupal_render($wic_nss_empty_report);
+    return $wic_nss_empty_report;
   }
 
   // Display the assessment report.
