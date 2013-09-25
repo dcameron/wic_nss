@@ -137,7 +137,11 @@ function wic_nss_assessment_view_page($bid) {
 
   // Display the empty report message if there is no content to display.
   if (empty($content)) {
-    return theme('wic_nss_empty_report', array('bid' => $bid));
+    $wic_nss_empty_report = array(
+      '#theme' => 'wic_nss_empty_report',
+      '#bid' => $bid,
+    );
+    return drupal_render($wic_nss_empty_report);
   }
 
   // Display the assessment report.
@@ -163,5 +167,9 @@ function template_preprocess_wic_nss_assessment_view_page(&$variables) {
       'fragment' => 'node-' . $nid,
     );
   }
-  $variables['table_of_contents'] = theme('links', array('links' => $content_links));
+  $links = array(
+    '#theme' => 'links',
+    '#links' => $content_links,
+  );
+  $variables['table_of_contents'] = drupal_render($links);
 }

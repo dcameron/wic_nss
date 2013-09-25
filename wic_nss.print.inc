@@ -23,7 +23,11 @@ function wic_nss_assessment_print_pdf_page($bid) {
   // Get the report content.
   $pages = _wic_nss_get_report_content($bid);
   if (empty($pages)) {
-    return theme('wic_nss_empty_report', array('bid' => $bid));
+    $wic_nss_empty_report = array(
+      '#theme' => 'wic_nss_empty_report',
+      '#bid' => $bid,
+    );
+    return drupal_render($wic_nss_empty_report);
   }
 
   // Initialize the PDF object.
