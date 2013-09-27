@@ -445,6 +445,11 @@ function _wic_nss_get_report_content($bid) {
   foreach ($unneeded_content as $nid) {
     unset($content[$nid]);
   }
+  // Remove the top-level book node.
+  if (isset($content[$bid])) {
+    unset($content[$bid]);
+  }
+
   return $content;
 }
 
