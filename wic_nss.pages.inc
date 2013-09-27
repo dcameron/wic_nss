@@ -133,6 +133,9 @@ function template_preprocess_wic_nss_assessment_menu(&$variables) {
  *   The nid of the assessment book node.
  */
 function wic_nss_assessment_view_page($bid) {
+  // Set the title so it won't be overriden by user-created menu links.
+  drupal_set_title('NSS Self-Assessment Report');
+
   $content = _wic_nss_get_report_content($bid);
 
   // Display the empty report message if there is no content to display.

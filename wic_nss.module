@@ -28,11 +28,11 @@ function wic_nss_menu() {
       'file' => 'wic_nss.pages.inc',
     ),
     'dashboard/%wic_nss_assessment/view' => array(
-      'title' => 'View report',
+      'title' => 'NSS Self-Assessment Report',
       'page callback' => 'wic_nss_assessment_view_page',
       'page arguments' => array(1),
       'access arguments' => array('access assessment dashboard'),
-      'type' => MENU_LOCAL_TASK,
+      'type' => MENU_NORMAL_ITEM,
       'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
       'weight' => 0,
       'file' => 'wic_nss.pages.inc',

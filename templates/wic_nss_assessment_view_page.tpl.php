@@ -11,6 +11,7 @@
  */
 ?>
 
+<a href="print">Print or save a PDF report of your self-assessment.</a>
 <div class="wic-nss-submissions-toc">
   <h2>Table of contents</h2>
   <?php print $table_of_contents; ?>
