@@ -1,7 +1,7 @@
 name = Self-assessment reports
 description = Print webform submissions grouped by book.
 core = 7.x
-version = 7.x-1.x
+version = 7.x-1.1
 package = WIC NSS
 
 dependencies[] = book
